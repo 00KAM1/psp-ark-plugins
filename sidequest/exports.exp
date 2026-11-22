@@ -1,0 +1,11 @@
+# Sidequest's export table.
+PSP_BEGIN_EXPORTS
+
+PSP_EXPORT_START(syslib, 0, 0x8000)
+PSP_EXPORT_FUNC_HASH(module_start)
+PSP_EXPORT_VAR_HASH(module_info)
+# Called by the kernel just before it restarts (game exit, launching another game).
+PSP_EXPORT_FUNC_NID(module_reboot_before, 0x2F064FA6)
+PSP_EXPORT_END
+
+PSP_END_EXPORTS
