@@ -56,7 +56,7 @@ The viewer handles the game, the PS button and the POWER switch the way Checkpoi
 
 It opens on L + R + LEFT held for half a second, or when bit 0 of the event flag `EmblemReq` is set, which Checkpoint's quit screen does for its R button. The flag is only created once a game file has loaded.
 
-`src/draw.c` has no PSP calls. The pictures in the manual are drawn by it on a PC.
+`src/draw.c` has no PSP calls, so the tests build it on a PC.
 
 ## Tests without a PSP
 

@@ -7,7 +7,7 @@
 
 #include <psptypes.h>
 
-#define SQ_VERSION_STR   "1.0"
+#define SQ_VERSION_STR   "1.1"
 #define SQ_BUILD_STAMP   __DATE__ " " __TIME__
 
 /* ---- Memory layout (64MB models) ----------------------------------------
@@ -47,7 +47,7 @@
 
 /* ---- Slot file: [header, 4KB][packed stream] ---------------------------- */
 #define SQ_MAGIC         0x31535153u          /* "SQS1" */
-#define SQ_HDR_VERSION   4
+#define SQ_HDR_VERSION   5              /* 5 from 1.1: a state carries the flash re-scan; older states are refused */
 #define SQ_MAX_REGIONS   8
 #define SQ_HDR_SIZE      0x1000u
 
@@ -91,10 +91,23 @@ typedef struct {
     int  load_brightness;    /* screen brightness in percent set after every load, 0 = leave it */
     int  wake_seconds;       /* the PSP wakes itself this many seconds after it sleeps for a
                                 save or load (clock alarm). 0 = off, slide POWER as before */
+    int  min_battery;        /* percent: no save or load at or below this on battery (0 = no limit) */
 } SqConfig;
 
 extern SqConfig g_cfg;
 void config_load(void);
+
+/* ---- flashfix.c: the internal flash after a load ------------------------- */
+typedef struct {
+    int ran, verify, lock, lists_bad, built, ok, result;
+    u32 ms, base, changed, spares;
+} FlashFix;
+extern FlashFix g_ff;
+int  ff_check(u32 *base_out);
+int  ff_rescan(void);
+void ff_report(void);
+int  ff_detach(void);
+int  ff_attach(void);
 
 void sq_log(const char *fmt, ...);
 int  sq_snprintf(char *buf, int size, const char *fmt, ...);

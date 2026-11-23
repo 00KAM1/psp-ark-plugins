@@ -4,7 +4,7 @@
 
 Emblem itself knows no games. Each game is one text file in `ms0:/EMBLEM/games/`, and a game without a file is left alone.
 
-*Pictures in this manual show a stand-in scene and made-up achievements, drawn by the plugin's own code. They are not a real game.*
+*The pictures are photos and a video of a PSP-3000 screen.*
 
 ## Contents
 - [What you see](#what-you-see)
@@ -20,7 +20,9 @@ Emblem itself knows no games. Each game is one text file in `ms0:/EMBLEM/games/`
 
 When an achievement is earned, a card slides up in the bottom right corner, stays for 5 seconds and slides away. The game keeps running.
 
-![An achievement unlocking](images/emblem-unlock.png)
+![An achievement unlocking](images/emblem-unlock.gif)
+
+![The card](images/emblem-unlock.jpg)
 
 - The last line gives the points and how many of the game's achievements you have.
 - Several at once are shown one after another. Past eight, the rest are summed up on one "And N more" card.
@@ -30,7 +32,7 @@ When an achievement is earned, a card slides up in the bottom right corner, stay
 
 Hold **L + R + LEFT** for half a second. The game freezes and the list of the game's achievements opens. With Checkpoint installed, **R** on its quit screen (PS button) opens it too.
 
-![The viewer](images/emblem-viewer.png)
+![The viewer](images/emblem-viewer.jpg)
 
 | Button | Action |
 |---|---|
@@ -49,8 +51,6 @@ Hold **L + R + LEFT** for half a second. The game freezes and the list of the ga
 
 △ shows what Emblem is reading from the game right now.
 
-![The values page](images/emblem-viewer-values.png)
-
 - **The values** are the ones the game's file asks to show, such as the level and the money. If they match what the game shows, the file fits your copy of the game.
 - **Ready** says whether Emblem considers the game to be running. On a title screen or while loading it says `NOT NOW (TITLE SCREEN OR LOADING)`, and nothing can unlock.
 - **File** and **Build** name the game file and the plugin build.
@@ -59,9 +59,7 @@ If nothing ever unlocks in a game, a photo of this page says why.
 
 ## Loading a save that is already far in
 
-About a second after a save is loaded, Emblem looks at everything once. Achievements the save has already met are written down quietly and shown together on one card:
-
-![Already earned](images/emblem-already-earned.png)
+About a second after a save is loaded, Emblem looks at everything once. Achievements the save has already met are written down quietly and shown together on one card, "Already earned".
 
 Some achievements are about a moment (winning a fight without being hit, buying something). Those cannot be told from a save and only unlock when they happen while you play.
 

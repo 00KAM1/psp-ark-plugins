@@ -2,7 +2,7 @@
 
 **CRT-style scanlines over PSP games.** As each frame is shown, Scanline darkens every 2nd, 3rd or 4th row of it. The game itself is not changed and does not know.
 
-*Pictures in this manual are a stand-in scene, not a real game, run through the plugin's own pixel code.*
+*The picture is a photo of a PSP-3000 screen.*
 
 ## Contents
 - [Buttons](#buttons)
@@ -40,7 +40,7 @@ Buttons used by other plugins are left alone: MissyHUD (L + R + START), Checkpoi
 
 After every change a label shows in the top right corner for about 3 seconds. The units (`%` and `MS`) are drawn small after their numbers.
 
-![The label: on, with a busy graphics chip, and off](images/scanline-label-closeup.png)
+![The label, with scanlines at 25% on every 2nd row](images/scanline-label.jpg)
 
 - **First line:** strength, spacing and mode. Or `SCANLINES OFF FOR THIS GAME`.
 - **`COST x.xMS`:** the time the scanlines take per frame in this game, averaged over the last 64 frames. It shows `COST ...` until 64 frames have been counted. A 30 fps game has 33 ms per frame and a 60 fps game 16.7 ms.
@@ -63,8 +63,6 @@ How dark each scanline is. Seven steps:
 | 75% | `75%` | `75` |
 | 100% (black lines) | `100%` | `100` |
 
-![Four of the seven strengths](images/scanline-strengths.png)
-
 The picture gets darker overall as the lines do: at 50% on every 2nd row about a quarter of the brightness is lost, at 25% about an eighth. Raise the PSP's brightness a notch to make up for it.
 
 12.5% is the lightest step because of how the lines are made. A PSP colour has 32 levels, and a step lighter than an eighth would leave the darker half of them unchanged.
@@ -72,8 +70,6 @@ The picture gets darker overall as the lines do: at 50% on every 2nd row about a
 ## Spacing
 
 One dark row in every 2, 3 or 4.
-
-![The three spacings, close up](images/scanline-spacing.png)
 
 1 in 2 is the classic look. 1 in 3 and 1 in 4 are thinner and keep more brightness.
 
@@ -92,8 +88,6 @@ Stay in mode 1 unless you see the top of the screen flicker. If you do, hold L +
 ## Jagged edges
 
 Scanlines break up the stair steps on edges that are close to horizontal, so they are less noticeable. The stronger the lines, the more they do.
-
-![The same edges with scanlines off, at 25% and at 50%](images/scanline-edges.png)
 
 This is not real anti-aliasing: stair steps on steep edges stay as they are.
 

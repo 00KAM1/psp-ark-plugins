@@ -4,7 +4,7 @@
 
 Checkpoint works on the game's own save data. It is separate from Sidequest's save states, and each plugin works without the other.
 
-*Screens in this manual are drawn from the plugin's own layout, colours and font. The games behind them are stand-in scenes, not real games.*
+*The pictures are photos of a PSP-3000 screen.*
 
 ## Contents
 - [How copies are made](#how-copies-are-made)
@@ -34,11 +34,9 @@ Checkpoint works on the game's own save data. It is separate from Sidequest's sa
 
 Press **L + R + SELECT** together. The game freezes and the menu opens at once. Any copy still waiting is made first.
 
-![The list of saves](images/checkpoint-saves.png)
-
 The first screen lists the game's saves. Open one to see its versions, newest first. Each version shows its date and time and the description the game wrote into the save (chapter, level, play time: whatever the game shows on its own load screen).
 
-![The versions of one save, two of them pinned](images/checkpoint-versions.png)
+![The versions of one save](images/checkpoint-versions.jpg)
 
 | Button | Action |
 |---|---|
@@ -60,10 +58,6 @@ The first screen lists the game's saves. Open one to see its versions, newest fi
 4. The version is written over the game's save.
 5. **Load the save from the game's own load screen.** Until you do, the game still has its old progress in memory.
 
-![Restore question](images/checkpoint-restore-confirm.png)
-
-![After a restore](images/checkpoint-restored.png)
-
 If anything fails partway, the game's current save is left exactly as it was. A restore is refused while the game is in the middle of saving.
 
 ## Pinning
@@ -82,9 +76,7 @@ A diary of the playthrough that writes itself. Each time the game saves with a n
 
 Press **SELECT** in the Checkpoint menu. The log opens as a two-page book over the frozen game, at the newest pages. **L** and **R** turn the page; **O** closes it.
 
-![The first pages: title page and the first entries](images/journey-log-first-pages.png)
-
-![The latest pages](images/journey-log-latest-pages.png)
+![The first pages: the title page and the first entry](images/journey-log.jpg)
 
 - **The first page** shows the game, the day the log began, the number of entries and the total time played.
 - **An entry is written only when the description changes.** Ten saves in the same place make one line. Going back to an earlier place makes a new line.
@@ -103,8 +95,6 @@ Press **SELECT** in the Checkpoint menu. The log opens as a two-page book over t
 
 Save descriptions and game titles written in Japanese are drawn in Japanese in the list of saves, the list of versions, the quit screen and the journey log.
 
-![Japanese save descriptions in the menu and the journey log](images/checkpoint-japanese.png)
-
 - The font is an 8x8 pixel font: kana and about 6,500 kanji, the full Japanese standard set. Kana read easily. Kanji are small at this size; simple ones are clear, dense ones are recognisable more than readable.
 - Every character takes the same width as an English letter, so lists stay lined up.
 - Half-width kana are shown full width. Accented letters are shown without the accent (`é` as `E`).
@@ -115,17 +105,13 @@ Save descriptions and game titles written in Japanese are drawn in Japanese in t
 
 Pressing the PS button opens Checkpoint's own "Quit the game?" screen in place of the system's. It shows when the game last saved and how many checkpoints you could go back to.
 
-![Quit screen, saved recently](images/quit-screen-saved.png)
-
 | Colour | Meaning |
 |---|---|
 | Green | Saved within the last 10 minutes |
 | Amber | Saved longer ago than that |
 | Red | Not saved since the game started |
 
-![Quit screen, save is old](images/quit-screen-old-save.png)
-
-![Quit screen, not saved this session](images/quit-screen-not-saved.png)
+![Quit screen, not saved this session](images/quit-screen.jpg)
 
 | Button | Action |
 |---|---|
@@ -136,9 +122,7 @@ Pressing the PS button opens Checkpoint's own "Quit the game?" screen in place o
 | L | Open Sidequest's menu (needs Sidequest) |
 | R | Open Emblem's achievement viewer (needs Emblem, and an achievement file for this game) |
 
-- A button is only shown when it can be used. Without Sidequest and Emblem the screen has just the last two rows:
-
-  ![Quit screen with Checkpoint on its own](images/quit-screen-alone.png)
+- A button is only shown when it can be used. Without Sidequest and Emblem the screen has just the last two rows.
 
 - L and R close the quit screen and hand over to the other plugin, which opens its own screen a moment later. The game runs for that moment.
 - Any save still waiting to be copied is copied before the screen appears, so a checkpoint of your latest save exists before you quit.

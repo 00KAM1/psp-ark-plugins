@@ -13,6 +13,7 @@ sh tests/run_tests.sh   # PC tests; needs gcc and Python with unicorn + pyelftoo
 | `src/main.c` | Start-up, decides whether to stay loaded |
 | `src/engine.c`, `src/engine_asm.S` | The resume hook, capture, restore, unpack stub, wake alarm |
 | `src/staging.c` | Finds free and busy extra RAM |
+| `src/flashfix.c` | Has the PSP's flash driver re-scan the chip after a load; checks it is the known driver first |
 | `src/compress.c` | Packing, unpacking, stream validation |
 | `src/slots.c` | Slot and picture files, per-game folders |
 | `src/ui.c` | Menu, continue prompt, suspend and quit, after-load settings |

@@ -1,5 +1,19 @@
 # Changelog
 
+Each plugin has its own version number. A plugin's number goes up only when its own files change, so an entry lists only the plugins you need to replace.
+
+## Sidequest 1.1
+
+Replace `sidequest.prx` and `SIDEQUEST/config.txt`. Checkpoint, Scanline and Emblem are unchanged and stay at 1.0.
+
+- **Fixed: text disappearing after a load.** After loading a state, text drawn with the PSP's own fonts could vanish (the system's save and load screens, and the text of some games such as Lunar: Silver Star Harmony) until a full power-off. A loaded state now has the PSP re-read its internal flash before anything else runs.
+- **Fixed: the PSP's settings could be reset after a load.** Same cause as the missing text; the same fix covers it.
+- **Battery guard.** No save or load at 5% battery or less unless the charger is connected. New setting `min_battery`.
+- **Brightness after a load is now 50%** (was 70%). `load_brightness` changes it.
+- **States from 1.0 cannot be loaded.** They show as empty. Save them again with 1.1.
+- **Firmware 6.61 only.** The fix works with one exact build of the PSP's flash driver. On anything else Sidequest refuses to save.
+- Loads take about one second longer.
+
 ## 1.0 (Initial Public Release)
 
 All four plugins are released together as version 1.0.

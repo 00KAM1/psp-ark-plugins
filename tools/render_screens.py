@@ -124,7 +124,7 @@ def sq_menu(bg, title, slots, sel, own=True, page=None, need=None, status=None, 
     """slots: six entries, each None or "MM-DD HH:MM". pic: (game key, seed) of the selected slot."""
     im = bg.copy()
     rect(im, BX, BY, BW, BH, C_BG); rect(im, BX, BY, BW, 12, C_HI)
-    text(im, BX + 4, BY + 2, "Sidequest 1.0", C_WHITE, C_HI)
+    text(im, BX + 4, BY + 2, "Sidequest 1.1", C_WHITE, C_HI)
     if need and own:
         s = "needs ~%d of %d MB" % need; text(im, BX + BW - 4 - 8 * len(s), BY + 2, s, C_WHITE, C_HI)
     text(im, BX + 4, BY + 18, title[:40], C_WHITE if own else C_WARN, C_BG)

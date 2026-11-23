@@ -4,3 +4,4 @@
 exports.c
 **/tests/run/
 __pycache__/
+docs/images/*.png

@@ -81,6 +81,25 @@ A restored system remembers the Memory Stick as it was when the slot was made. W
 - Sidequest opens a marker file before every capture. After a restore, if that handle is dead, a re-mount happened. If it is still alive, Sidequest sends the `fatms0:` device call used after USB mode ("the stick changed behind your back") and checks again.
 - The game stays frozen until this is done. If freshness cannot be confirmed, a warning is shown and must be acknowledged.
 
+### The internal flash after a load
+
+The PSP's settings live on its internal flash chip, in a part called flash1. The flash driver does not store data at fixed places on the chip. Every write goes to a spare block, and the driver keeps tables in memory that say where each block of data currently sits. The tables are built once, by reading the whole chip, when the PSP is switched on from fully off.
+
+The PSP rewrites its settings file (the registry) every time it goes to sleep, and Sidequest puts it to sleep for every save and load. So the tables change with every save and load.
+
+A state is a copy of all memory, tables included. Loading a state brought back the tables from the moment it was saved, while the chip had moved on. Blocks that had moved since then read as blank. The registry could no longer be found, and the PSP's font library, which looks up its font folder in the registry, had no fonts: every text drawn with the system fonts disappeared. Worse, a write made through the old tables could land on blocks now used for something else, which is how settings came to be reset. Restarting the game did not help, because the tables are passed from one kernel to the next; only a cold boot reads the chip again.
+
+Since 1.1 Sidequest does two things:
+
+- **Before the sleep of a save** it detaches flash1 from the file system, so the state holds no open view of it. It is attached again as soon as the PSP is awake.
+- **In a loaded state, as the very first step after waking**, it has the flash driver build its tables again from the chip, using the driver's own start-up routine, and only then attaches flash1. This takes about one second.
+
+The driver has no public call for this, so Sidequest calls the routine inside the driver directly. That ties it to one exact build of the driver (firmware 6.61). Before every use it checks the driver's sizes, a checksum of its code that does not depend on where the driver was loaded, and the layout of its data. If anything differs nothing is called: at game start that turns saving off, and after a load it leaves flash1 detached and shows a warning.
+
+The scan does what the driver does at a cold boot, including erasing the chip's spare blocks, about 190 of them. Nothing else on the flash is written.
+
+The code is `sidequest/src/flashfix.c`. The step runs from `do_save()` in `ui.c`, right after the wake, because that is the code a loaded state continues in.
+
 ### Per-game folders
 
 The folder name is built from the path the game was started from: the ISO's file name without extension (or the folder of an `EBOOT.PBP`), upper-cased, other characters turned to `_`, cut to 20 characters, plus `_` and four hex digits of a checksum of the whole path. This avoids relying on the disc ID, which was not always available.
@@ -105,6 +124,7 @@ Sidequest releases the lock before its own save and load sleeps, which would oth
 
 - `tests/test_sim.py` loads the real `sidequest.elf` into a MIPS emulator with a PSP memory map and drives the hook as the power service would: idle pass-through, refused oversize capture, capture, refused restore after corruption, and a full A → B → A restore with every byte and register compared.
 - `tests/test_host.c` covers packing, stream validation (200,000 mutated streams), slot files, formatting and config, built with AddressSanitizer.
+- The flash re-scan cannot be tested from the repo: it needs a copy of Sony's driver, which is not included. It was tried on a PC against a copy of the driver taken from the console's memory before it ran on the PSP.
 
 ---
 

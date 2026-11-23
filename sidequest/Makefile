@@ -1,5 +1,5 @@
 TARGET = sidequest
-OBJS = src/main.o src/util.o src/compress.o src/engine.o src/engine_asm.o src/staging.o \
+OBJS = src/main.o src/util.o src/compress.o src/engine.o src/engine_asm.o src/staging.o src/flashfix.o \
        src/slots.o src/blit.o src/ui.o exports.o
 
 CFLAGS = -O2 -G0 -Wall -Wextra -Wno-unused-parameter -fno-pic -fno-builtin-printf -std=gnu99

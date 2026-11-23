@@ -1,10 +1,10 @@
-# Sidequest 1.0 manual
+# Sidequest 1.1 manual
 
 **Save states for PSP games.** Sidequest freezes the whole system exactly as it is (the game, its memory, the screen) into a slot on the Memory Stick, and can put that moment back later. Every game gets its own six slots.
 
 Sidequest behaves like an emulator save state, not like a game save. It does not replace saving in the game.
 
-*Screens in this manual are drawn from the plugin's own layout, colours and font. The games behind them are stand-in scenes, not real games.*
+*The pictures are photos of a PSP-3000 screen.*
 
 ## Contents
 - [Opening the menu](#opening-the-menu)
@@ -16,6 +16,8 @@ Sidequest behaves like an emulator save state, not like a game save. It does not
 - [Continue prompt](#continue-prompt)
 - [What happens during a save or load](#what-happens-during-a-save-or-load)
 - [After a load: mute and brightness](#after-a-load-mute-and-brightness)
+- [After a load: the internal flash](#after-a-load-the-internal-flash)
+- [Battery](#battery)
 - [Where Sidequest runs](#where-sidequest-runs)
 - [Files on the Memory Stick](#files-on-the-memory-stick)
 - [Settings](#settings)
@@ -28,7 +30,7 @@ Hold **SELECT** on its own for about one second. It only triggers when nothing e
 
 The game also sees that SELECT press. If that is a problem in a particular game, change the button in `config.txt`.
 
-![The Sidequest menu](images/sidequest-menu.png)
+![The Sidequest menu, with the suspend slot selected](images/sidequest-menu.jpg)
 
 | Button | Action |
 |---|---|
@@ -52,13 +54,7 @@ The title bar shows the version. The exact build (`built <date> <time>`) is the 
 - **Suspend**, at the top, set apart from the rest. It is written only by "suspend and quit" and is replaced every time you suspend. You can load it. You cannot save to it by hand and you cannot delete it. It stays after you continue from it.
 - **States 1 to 5.** You save, overwrite and delete these. They never clear themselves.
 
-![The suspend slot selected](images/sidequest-suspend-slot.png)
-
-*The suspend slot: load only.*
-
-![An empty state selected](images/sidequest-empty-slot.png)
-
-*An empty state: save only.*
+The buttons at the bottom change with the row: the suspend slot can only be loaded, and an empty state can only be saved to.
 
 Each row shows the date and time it was saved. The selected slot's picture is the game screen at the moment the menu was opened for that save.
 
@@ -70,10 +66,6 @@ There is no limit on the number of games. The only limit is Memory Stick space.
 2. If the state is in use you are asked "Overwrite this slot?".
 3. The screen goes dark for a few seconds and comes back by itself.
 4. The state is written to the Memory Stick and the menu shows it.
-
-![Overwrite question](images/sidequest-confirm.png)
-
-![The message shown before the screen goes dark](images/sidequest-saving.png)
 
 Before anything happens Sidequest checks that the Memory Stick has room and that the game fits. If not, the save is refused and nothing changes.
 
@@ -90,8 +82,6 @@ Before a load Sidequest checks the slot file is undamaged, was made on this PSP 
 ## Other games (L / R)
 
 L and R step through the other games that have slots. The title turns amber and shows which page you are on.
-
-![Another game's slots](images/sidequest-other-game.png)
 
 On another game's page you can:
 - **load** a slot, which switches straight to that game ("Switch games?");
@@ -111,7 +101,7 @@ The suspend slot is overwritten each time. It is not removed when you continue f
 
 When you start a game that has any slot, the game pauses a few seconds in and asks **"Continue where you left off?"**, showing the picture of the most recent slot, whether that is the suspend slot or a state.
 
-![The continue prompt](images/sidequest-continue-prompt.png)
+![The continue prompt, with the slot being read](images/sidequest-continue-prompt.jpg)
 
 - **X** goes straight back to that moment (a normal load: dark screen for a few seconds).
 - **O** starts the game normally.
@@ -132,10 +122,21 @@ The 3 seconds only covers the PSP going to sleep. The snapshot is taken on wakin
 
 ## After a load: mute and brightness
 
-After every load the PSP is muted and the screen is set to 70% brightness, whatever the slot was saved with. This is so a loaded state never comes back at full volume.
+After every load the PSP is muted and the screen is set to 50% brightness, whatever the slot was saved with. This is so a loaded state never comes back at full volume.
 
 - `load_mute = 0` keeps the sound setting the slot had.
 - `load_brightness` sets a different percentage; `0` keeps what the slot had.
+
+## After a load: the internal flash
+
+A loaded state has the PSP read its internal flash again before the game continues. This adds about one second to every load. Without it, text drawn with the PSP's own fonts disappeared after a load and the PSP's settings could be lost; see [how it works](sidequest-checkpoint-how-it-works.md#the-internal-flash-after-a-load).
+
+- It works on firmware 6.61 only. On any other firmware Sidequest refuses to save.
+- States saved before 1.1 show as empty and cannot be loaded.
+
+## Battery
+
+Saving and loading are refused when the battery is at 5% or less and the charger is not connected. A PSP that loses power in the middle of a save or load could damage the slot or the internal flash. `min_battery` changes the limit (0 to 50); `0` turns the check off.
 
 ## Where Sidequest runs
 
@@ -175,8 +176,9 @@ ms0:/SIDEQUEST/<game>/STATE5.SQS    + STATE5.THM
 | `enable_load` | `1` | `0` = saving only; loads are refused. |
 | `resume_prompt` | `1` | `0` = never ask to continue when a game starts. |
 | `load_mute` | `1` | `1` = mute after every load. `0` = keep what the slot had. |
-| `load_brightness` | `70` | Brightness in percent after every load (1 to 100). `0` = keep what the slot had. |
+| `load_brightness` | `50` | Brightness in percent after every load (1 to 100). `0` = keep what the slot had. |
 | `wake_seconds` | `3` | Seconds until the PSP wakes itself after sleeping for a save or load (2 to 30). `0` = no alarm; slide POWER. |
+| `min_battery` | `5` | No save or load at or below this battery percentage without the charger (0 to 50). `0` = no limit. |
 
 ## Messages
 
@@ -192,13 +194,17 @@ ms0:/SIDEQUEST/<game>/STATE5.SQS    + STATE5.THM
 | Slot data is damaged. Not loaded. | The file failed its checks. The running game is untouched. |
 | The PSP did not suspend (game busy?) | The game would not let the PSP sleep. Try again at a calmer moment (not during a load or a save). |
 | Memory Stick was not refreshed! | After a load Sidequest could not confirm the Memory Stick was re-read. Saving in the game now could damage files; quit and restart the game to be safe. |
+| Battery too low: connect the charger first | The battery is at or below `min_battery` and the charger is not connected. Nothing was done. |
+| This firmware is not supported: nothing saved | The PSP's flash driver is not the one Sidequest knows (firmware 6.61). Saving is off; nothing was changed. |
+| The internal flash could not be re-scanned. | Shown after a load. Text will be missing in this session. Press X to go on, then power the PSP off fully (hold POWER until the light goes out). |
+| Power the PSP off fully before saving again | A load in this session could not re-scan the flash. Saving stays off until a full power-off. |
 
 ## Things to know
 
 - **A load can undo progress.** If you load an old state and then save in the game, the game save now holds the old progress.
-- **A slot only loads on the same PSP, firmware and ARK version** it was made on.
+- **A slot only loads on the same PSP, firmware and ARK version** it was made on, and Sidequest 1.1 only saves on firmware 6.61.
 - **Don't move or rename a game's ISO** while it has slots. The slots are tied to its path.
 - **Don't save a state during online or ad hoc play.**
-- **After updating Sidequest, save your states again.** A slot contains the whole system, including the copy of Sidequest that was running when it was saved. Loading an old slot brings that older copy back until the game is restarted.
+- **States saved before 1.1 cannot be loaded.** They show as empty. Save into the slot again.
 - After loading a slot, avoid changing system settings from inside that game.
 - After a load the game is held frozen until the Memory Stick has been re-read, so the restored system does not write with an out-of-date picture of the files.

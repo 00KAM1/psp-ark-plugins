@@ -556,6 +556,32 @@ static void measure(void)
 }
 
 /* Returns 1 if the menu should close (we are a freshly restored snapshot). */
+/* Saving and loading put the PSP to sleep and wake it, and a load re-scans
+ * the flash chip. None of that should start on a battery that may give out.
+ * Returns 1 when it is fine to go on (charger connected, or above the limit,
+ * or the level cannot be read). */
+static int battery_ok(const char *what)
+{
+    static int (*percent)(void), (*online)(void);
+    static int looked;
+    if (!looked) {
+        looked = 1;
+        percent = (void *)sctrlHENFindFunction("scePower_Service", "scePower", 0x2085D15D);
+        online  = (void *)sctrlHENFindFunction("scePower_Service", "scePower", 0x87440F5E);
+    }
+    if (!g_cfg.min_battery || !percent) return 1;
+    int pct = percent(), ac = online ? online() : 0;
+    if (pct < 0 || pct > g_cfg.min_battery || ac == 1) return 1;
+    sq_log("%s: refused, battery at %d%% (limit %d%%) and no charger", what, pct, g_cfg.min_battery);
+    set_status(C_ERR, "Battery too low: connect the charger first");
+    return 0;
+}
+
+/* The internal flash around a save and after a load: see flashfix.c. */
+static int g_flash_ok;                          /* the flash driver is the one flashfix.c knows (checked at game start) */
+static int g_flash_detached, g_flash_det_rc, g_flash_att_rc;
+static int g_flash_bad;                         /* a load could not re-scan the flash: no more saves until a power-off */
+
 static int do_save(int k)
 {
     char err[80];
@@ -570,6 +596,9 @@ static int do_save(int k)
         u32 want = (g_need ? g_need : staging_capacity()) / 1024 + 2048, have = free_kb();
         if (have != 0xFFFFFFFFu && have < want) { set_status(C_ERR, "Not enough free space on the Memory Stick"); return 0; }
     }
+    if (!g_flash_ok) { set_status(C_ERR, "This firmware is not supported: nothing saved"); return 0; }
+    if (g_flash_bad) { set_status(C_ERR, "Power the PSP off fully before saving again"); return 0; }
+    if (!battery_ok("save")) return 0;
     if (!g_suspend && g_view[k].valid && !confirm("Overwrite this slot?")) { set_status(C_GREY, "Cancelled"); return 0; }
     sq_log("save: X pressed, slot %d", k + 1);
     if (staging_alloc(err, sizeof(err)) < 0) { set_status(C_ERR, err); return 0; }
@@ -592,10 +621,29 @@ static int do_save(int k)
     sq_log("save: slot %d, asking for %s suspend (test=%d)", k + 1, engine_instant() ? "instant" : "real", g_cfg.test);
     sceKernelDelayThread(200 * 1000);           /* let that line reach the stick */
     sentinel_open();
+    /* flash1 is detached while the snapshot is taken, so the state holds no
+     * file-system view of it. Nothing may be logged from here until we know
+     * which system we woke up as. */
+    g_ff.ran = 0;
+    g_flash_att_rc = 1;
+    g_flash_det_rc = ff_detach();
+    g_flash_detached = g_flash_det_rc >= 0;
     thaw_game();                                /* its power callbacks must be able to run */
     power_before_own_sleep();
     int r = engine_capture(&h, &len, freeze_game);
     power_hold();                               /* awake again, game frozen again */
+    /* FIRST thing after the wake. In a loaded state (r == 2) the flash driver's
+     * block tables are as old as the state: have the driver scan the chip
+     * again before anything can use flash1, and only then attach flash1. If
+     * the scan could not be done, flash1 stays detached for this session: text
+     * will be missing, but nothing can be written to the settings storage
+     * through wrong tables. */
+    int loaded = r == 2 && g_cfg.test != 3 && g_cfg.test != 4;
+    int scan_rc = loaded ? ff_rescan() : 0;
+    if (scan_rc == 0) {
+        if (!g_flash_detached) g_flash_detached = ff_detach() >= 0;    /* the detach before the sleep had failed: replace the old view now */
+        if (g_flash_detached) { g_flash_att_rc = ff_attach(); g_flash_detached = 0; }
+    }
 
     if (r == 2 && (g_cfg.test == 3 || g_cfg.test == 4)) {
         /* Round-trip test: we are the same system, unpacked over itself. */
@@ -611,7 +659,21 @@ static int do_save(int k)
          * inside the snapshot. Nothing may touch the stick before this. */
         int fresh = stick_refresh();
         staging_free();
+        ff_report();
+        {
+            SceIoStat rs;
+            memset(&rs, 0, sizeof(rs));
+            int gs = sceIoGetstat("flash1:/registry/system.dreg", &rs);
+            sq_log("flash: after load: detach %08X, attach %08X, registry file %s (%08X)", g_flash_det_rc, g_flash_att_rc,
+                   gs >= 0 ? "found" : "NOT FOUND", gs);
+        }
         after_load_settings();
+        if (!g_ff.ok) {
+            g_flash_bad = 1;
+            draw_message("The internal flash could not be re-scanned.", "Text will be missing. Power off fully. X: go on", C_ERR);
+            wait_release();
+            while (wait_press() != PSP_CTRL_CROSS) {}
+        }
         if (!fresh) {
             draw_message("Memory Stick was not refreshed!", "Saving now may damage files. X: go on", C_ERR);
             wait_release();
@@ -625,6 +687,8 @@ static int do_save(int k)
 
     sentinel_close();
     sq_log("save: back from suspend, result %d, hook ran %d times, %d bytes packed", r, engine_hook_hits(), len);
+    if (g_flash_det_rc < 0 || g_flash_att_rc < 0)
+        sq_log("flash: around the save: detach %08X, attach %08X", g_flash_det_rc, g_flash_att_rc);
     if (r == 10 || r == 11) {
         staging_free();
         set_status(C_OK, r == 10 ? "Test 1 passed: suspend and resume work"
@@ -671,6 +735,7 @@ static void do_load(int k, int ask)
     const SqSlotHeader *h = &g_view[k].h;
     if (!g_view[k].valid) { set_status(C_GREY, "Slot is empty"); return; }
     if (!g_cfg.enable_load) { set_status(C_WARN, "Set enable_load=1 in config.txt first"); return; }
+    if (!battery_ok("load")) return;
     if (engine_ready(err, sizeof(err)) < 0) { set_status(C_ERR, err); return; }
     if (!strncmp(h->boot_path, "ms0:", 4) && sceIoGetstat(h->boot_path, &st) < 0) {
         set_status(C_ERR, "That game's file was moved or deleted");
@@ -962,6 +1027,12 @@ int ui_thread(SceSize args, void *argp)
     sq_log("ui: '%s' %s from %s%s%s", g_title, g_disc, g_boot, g_real_umd ? " (UMD)" : "", g_can_save ? "" : " (load only)");
     if (g_can_save && g_boot[0]) make_key(g_boot, g_key);
     sq_log("ui: folder '%s'", g_key);
+    {
+        u32 at = 0;
+        int v = ff_check(&at);
+        g_flash_ok = v == 0;
+        sq_log("flash: driver at %08X, check %d (%s)", at, v, v ? "NOT the driver Sidequest knows: saving is off" : "ok");
+    }
     load_games();
     show_page(0);
     power_lookup();

@@ -164,6 +164,7 @@ static void apply(const char *key, const char *val)
     else if (!strcmp(key, "load_brightness")) { int b = parse_int(val); if (b >= 0 && b <= 100) g_cfg.load_brightness = b; }
     else if (!strcmp(key, "wake_seconds")) { int w = parse_int(val); if (w == 0 || (w >= 2 && w <= 30)) g_cfg.wake_seconds = w; }
     else if (!strcmp(key, "deep_sleep")) g_cfg.deep_sleep = parse_int(val) != 0;
+    else if (!strcmp(key, "min_battery")) { int b = parse_int(val); if (b >= 0 && b <= 50) g_cfg.min_battery = b; }
     else if (!strcmp(key, "test"))       g_cfg.test = parse_int(val);
     else if (!strcmp(key, "hotkey"))     g_cfg.hotkey = (u32)parse_int(val);
     else if (!strcmp(key, "hold_ms")) {
@@ -177,7 +178,8 @@ void config_load(void)
     g_cfg.enable_load = 1;
     g_cfg.resume_prompt = 1;
     g_cfg.load_mute = 1;
-    g_cfg.load_brightness = 70;
+    g_cfg.load_brightness = 50;
+    g_cfg.min_battery = 5;
     g_cfg.wake_seconds = 3;
     g_cfg.hold_ms = 1000;
     g_cfg.deep_sleep = 1;                       /* instant suspend breaks game exit on real hardware */
