@@ -45,7 +45,7 @@ All four plugins are released together as version 1.0.
 ### Emblem
 - **Achievements for PSP games, kept locally.** A card pops up in the bottom right corner when one is earned, and it is written to the Memory Stick. Nothing goes online.
 - **One text file per game.** The plugin has no game built in; adding a game means adding a file.
-- **41 games, 1,731 achievements:** 42 game files, each written or checked by hand from RetroAchievements' public memory notes.
+- **41 games, 1,731 achievements:** 42 game files, each written or checked by hand, with AI assistance, from RetroAchievements' public memory notes.
 - **Viewer** on L + R + LEFT, or R on Checkpoint's quit screen: every achievement of the game, earned or locked, with dates and points.
 - **A loaded save is caught up at once:** what it has already earned is shown on one card.
 

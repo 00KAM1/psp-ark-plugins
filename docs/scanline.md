@@ -2,7 +2,7 @@
 
 **CRT-style scanlines over PSP games.** As each frame is shown, Scanline darkens every 2nd, 3rd or 4th row of it. The game itself is not changed and does not know.
 
-*The picture is a photo of a PSP-3000 screen.*
+*The pictures are a photo and a video frame of a PSP-3000 screen, rebuilt at the PSP's own pixel size, with the lines and the label drawn by the plugin's code.*
 
 ## Contents
 - [Buttons](#buttons)
@@ -40,7 +40,7 @@ Buttons used by other plugins are left alone: MissyHUD (L + R + START), Checkpoi
 
 After every change a label shows in the top right corner for about 3 seconds. The units (`%` and `MS`) are drawn small after their numbers.
 
-![The label, with scanlines at 25% on every 2nd row](images/scanline-label.jpg)
+![The label, with scanlines at 25% on every 2nd row](images/scanline-screenshot.png)
 
 - **First line:** strength, spacing and mode. Or `SCANLINES OFF FOR THIS GAME`.
 - **`COST x.xMS`:** the time the scanlines take per frame in this game, averaged over the last 64 frames. It shows `COST ...` until 64 frames have been counted. A 30 fps game has 33 ms per frame and a 60 fps game 16.7 ms.
@@ -62,6 +62,8 @@ How dark each scanline is. Seven steps:
 | 62.5% | `62.5%` | `63` |
 | 75% | `75%` | `75` |
 | 100% (black lines) | `100%` | `100` |
+
+![Four strengths at each of the three spacings](images/scanline-settings.png)
 
 The picture gets darker overall as the lines do: at 50% on every 2nd row about a quarter of the brightness is lost, at 25% about an eighth. Raise the PSP's brightness a notch to make up for it.
 

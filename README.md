@@ -23,7 +23,7 @@ Achievements for PSP games, kept on the Memory Stick. Emblem watches a game's me
 </p>
 
 - **One text file per game.** The plugin knows no games itself; a game without a file is left alone.
-- **41 games, 1,731 achievements in this release**, every file written or checked by hand. Most files cover part of a game's set, and only Ys: The Oath in Felghana has been played on a PSP so far; see the [manual](docs/emblem.md#games) for the list.
+- **41 games, 1,731 achievements in this release**, every file written or checked by hand with AI assistance. Most files cover part of a game's set, and only Ys: The Oath in Felghana has been played on a PSP so far; see the [manual](docs/emblem.md#games) for the list.
 - Hold L + R + LEFT for half a second to see every achievement of the game, earned or locked.
 - Loading a save that is already far in catches up at once.
 
@@ -33,11 +33,7 @@ Achievement titles and points come from the [RetroAchievements](https://retroach
 
 **Documentation:** [Manual](docs/emblem.md) · [Adding a game](docs/emblem-adding-games.md) · [Known issues and test status](docs/emblem-known-issues.md) · [How it works](docs/emblem-how-it-works.md)
 
-## Sidequest + Checkpoint
-
-Two plugins for PSP games on ARK-5 custom firmware to manage Save states and Save Files allowing quick resume of games and live backups of save files.
-
-### Sidequest
+## Sidequest
 
 Save states for PSP games. Sidequest freezes the whole system exactly as it is and brings it back later. Every game has six slots of its own: a suspend slot and five states, each with a picture.
 
@@ -55,14 +51,14 @@ Save states for PSP games. Sidequest freezes the whole system exactly as it is a
 
 **Documentation:** [Manual](docs/sidequest.md) · [Known issues and test status](docs/sidequest-checkpoint-known-issues.md) · [How it works](docs/sidequest-checkpoint-how-it-works.md)
 
-### Checkpoint
+## Checkpoint
 
 A history of your game saves. Checkpoint keeps a dated copy every time a game saves, so an earlier version can be put back. It also keeps a journey log, a diary of the playthrough that writes itself, and replaces the PS-button quit screen with one that shows when you last saved.
 
 <p align="center">
+  <img src="docs/images/quit-screen.jpg" alt="Quit screen" width="32.5%">
   <img src="docs/images/checkpoint-versions.jpg" alt="Checkpoint versions" width="32.5%">
   <img src="docs/images/journey-log.jpg" alt="Journey log" width="32.5%">
-  <img src="docs/images/quit-screen.jpg" alt="Quit screen" width="32.5%">
 </p>
 
 - L + R + SELECT opens the menu: pick a save, pick a version, restore it. START pins a version so it is never pushed out.
@@ -78,7 +74,8 @@ A history of your game saves. Checkpoint keeps a dated copy every time a game sa
 CRT-style scanlines over any game, with the settings you choose remembered for each game.
 
 <p align="center">
-  <img src="docs/images/scanline-label.jpg" alt="Scanlines on, with the label that shows after a change" width="60%">
+  <img src="docs/images/scanline-screenshot.png" alt="Scanlines at 25% on every 2nd row, with the label that shows after a change" width="59%">
+  <img src="docs/images/scanline-settings.png" alt="Four strengths at each of the three spacings" width="38%">
 </p>
 
 - Seven strengths from 12.5% to 100%, with lines on every 2nd, 3rd or 4th row.
@@ -93,7 +90,7 @@ This is a new plugin written from scratch. It is not based on, and shares no cod
 
 **Documentation:** [Manual](docs/scanline.md) · [Known issues and test status](docs/scanline-known-issues.md) · [How it works](docs/scanline-how-it-works.md)
 
-*The pictures on this page are photos and a video of a PSP-3000 screen.*
+*The pictures on this page are photos and a video of a PSP-3000 screen. The two Scanline pictures are a photo and a video frame rebuilt at the PSP's own pixel size, with the lines drawn by the plugin's code.*
 
 ## Install
 
@@ -115,6 +112,13 @@ Download the newest `psp-ark-plugins` zip from the [Releases](../../releases) pa
 ## Buttons at a glance
 
 None of the four uses another's buttons, and all leave MissyHUD's L + R + START alone.
+
+Some of these can be changed in the plugin's `config.txt`:
+
+- **Sidequest** and **Checkpoint**: `hotkey` sets the button or combination that opens the menu, and `hold_ms` how long it is held.
+- **Scanline**: the combinations are fixed. `hotkeys = 0` turns them off, and the settings are then taken from its files.
+- **Emblem**: fixed; it has no settings file.
+- The buttons inside the menus and on the quit screen are fixed.
 
 | Where | Button | Action |
 |---|---|---|

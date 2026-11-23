@@ -20,9 +20,10 @@ Emblem itself knows no games. Each game is one text file in `ms0:/EMBLEM/games/`
 
 When an achievement is earned, a card slides up in the bottom right corner, stays for 5 seconds and slides away. The game keeps running.
 
-![An achievement unlocking](images/emblem-unlock.gif)
-
-![The card](images/emblem-unlock.jpg)
+<p align="center">
+  <img src="images/emblem-unlock.gif" alt="An achievement unlocking" width="49%">
+  <img src="images/emblem-unlock.jpg" alt="The card" width="49%">
+</p>
 
 - The last line gives the points and how many of the game's achievements you have.
 - Several at once are shown one after another. Past eight, the rest are summed up on one "And N more" card.
@@ -112,7 +113,7 @@ This release has 42 files for 41 games, 1,731 achievements in all.
 | Kingdom Hearts: Birth by Sleep -Final Mix- | `ULJM05775` | 1 | 131 |
 | Star Ocean: First Departure | `ULUS10374` | 1 | 115 |
 
-- **Every file was written or checked by hand** from RetroAchievements' public memory notes. Only Ys: The Oath in Felghana has been played on a PSP; the others have been checked on a PC only. If an achievement pops when it should not, delete its line from the file.
+- **Every file was written or checked by hand, with AI assistance,** from RetroAchievements' public memory notes. Only Ys: The Oath in Felghana has been played on a PSP; the others have been checked on a PC only. If an achievement pops when it should not, delete its line from the file.
 - **Most files cover part of a set.** A file holds only what the notes show plainly: story progress, quests, bosses, collections, levels. Challenges such as "without taking damage" or "in under a minute" are mostly left out. The first lines of each file list what is not there, and the viewer's totals count only what the file offers.
 - **Trails in the Sky SC** has one file for each disc, with the same achievements.
 - **Your copy has to be the release the file was made for.** The file name is the game ID. Emblem's log gives the ID of the game you started (see [The log](#the-log)). A fan translation or an undub usually keeps the ID but can move things in memory; a file can then stay silent or misfire.

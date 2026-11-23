@@ -12,7 +12,7 @@ This plugin was written by Claude, Anthropic’s AI model, from my ideas and my 
 Two early test builds ran on the PSP-3000 in Ys: The Oath in Felghana: the card drew correctly next to another plugin, the memory values matched the game, and an achievement unlocked on loading a save. The release has the same display code and the same Felghana rules, checked against those builds on a PC (apart from the difficulty change in issue 5), plus the game-file engine and the viewer, which have only run on a PC.
 
 **2. Only one game file has been played on a PSP.**
-All 42 files were written or checked by hand against RetroAchievements' public memory notes, and on a PC each loads without errors and unlocks nothing from empty memory. Only Ys: The Oath in Felghana has been played with Emblem. A rule in any other file can still be wrong: if an achievement pops when it should not, delete its line from the file.
+All 42 files were written or checked by hand, with AI assistance, against RetroAchievements' public memory notes, and on a PC each loads without errors and unlocks nothing from empty memory. Only Ys: The Oath in Felghana has been played with Emblem. A rule in any other file can still be wrong: if an achievement pops when it should not, delete its line from the file.
 
 **3. Most files cover part of a set.**
 A file holds only what the notes show plainly. Challenge runs are mostly left out, and the first lines of each file list what is missing. Emblem's achievement numbers stop at 255, so Valkyria Chronicles 2 (314 in the set) and Zero no Kiseki (257) could never be complete.

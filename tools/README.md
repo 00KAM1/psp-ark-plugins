@@ -2,7 +2,7 @@
 
 Run everything from the top of the repository. The pictures need `pip install Pillow`.
 
-The manuals show photos of a PSP, not these pictures. The scripts below draw mock screens into `docs/images/` and are kept for checking a layout before it is built; their `.png` output is not kept in the repository.
+The manuals show photos of a PSP, not these pictures. The scripts below draw mock screens into `docs/images/` and are kept for checking a layout before it is built; delete their output afterwards, it is not part of the docs.
 
 `msx.bin` is the 8x8 font from the PSPSDK debug library, the same one all four plugins draw with.
 
