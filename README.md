@@ -1,17 +1,37 @@
 # PSP ARK Plugins
 
-Four kernel plugins for PSP games on ARK-5 custom firmware: **Sidequest**, **Checkpoint**, **Scanline** and **Emblem**. They are independent of each other, so you can install any of them, and they are made to run side by side.
+Four kernel plugins for PSP games on ARK-5 custom firmware: **Emblem**, **Sidequest**, **Checkpoint** and **Scanline**. They are independent of each other, so you can install any of them, and they are made to run side by side.
 
 | Plugin | Version | What it does | Opens with |
 |---|---|---|---|
+| [**Emblem**](#emblem) | 1.0 | Achievements, earned and kept on the Memory Stick. One text file per game. | Hold **L + R + LEFT**, ½ s |
 | [**Sidequest**](#sidequest) | 1.1 | Save states. Freezes the whole system and brings it back later: one suspend slot and five state slots for every game. | Hold **SELECT** alone, 1 s |
 | [**Checkpoint**](#checkpoint) | 1.0 | A dated history of your game saves, a journey log that writes itself, and a PS-button quit screen that shows when you last saved. | **L + R + SELECT**, PS button |
 | [**Scanline**](#scanline) | 1.0 | CRT-style scanlines over any game, with settings kept per game. | Hold **L + R** with a button, ½ s |
-| [**Emblem**](#emblem) | 1.0 | Achievements, earned and kept on the Memory Stick. One text file per game. | Hold **L + R + LEFT**, ½ s |
 
 Each plugin has its own version number, which goes up only when that plugin's files change. All four come in one release file, and the [changelog](CHANGELOG.md) says which ones to replace when you update.
 
-> **Disclosure.** These plugins were written by Claude, Anthropic’s AI model, from my ideas and my testing on a PSP-3000. I’m not a kernel programmer, and nothing has been tested beyond my own console. Please read the known issues ([Sidequest + Checkpoint](docs/sidequest-checkpoint-known-issues.md), [Scanline](docs/scanline-known-issues.md), [Emblem](docs/emblem-known-issues.md)) before relying on them.
+> **Disclosure.** These plugins were written by Claude, Anthropic’s AI model, from my ideas and my testing on a PSP-3000. I’m not a kernel programmer, and nothing has been tested beyond my own console. Please read the known issues ([Emblem](docs/emblem-known-issues.md), [Sidequest + Checkpoint](docs/sidequest-checkpoint-known-issues.md), [Scanline](docs/scanline-known-issues.md)) before relying on them.
+
+## Emblem
+
+Achievements for PSP games, kept on the Memory Stick. Emblem watches a game's memory while you play and pops up a card when an achievement is earned. Nothing goes online.
+
+<p align="center">
+  <img src="docs/images/emblem-unlock.gif" alt="An achievement unlocking" width="49%">
+  <img src="docs/images/emblem-viewer.jpg" alt="The viewer" width="49%">
+</p>
+
+- **One text file per game.** The plugin knows no games itself; a game without a file is left alone.
+- **41 games, 1,731 achievements in this release**, every file written or checked by hand. Most files cover part of a game's set, and only Ys: The Oath in Felghana has been played on a PSP so far; see the [manual](docs/emblem.md#games) for the list.
+- Hold L + R + LEFT for half a second to see every achievement of the game, earned or locked.
+- Loading a save that is already far in catches up at once.
+
+Achievement titles and points come from the [RetroAchievements](https://retroachievements.org) sets, and the memory addresses from their public code notes. Emblem is not connected to RetroAchievements, and nothing earned here appears on a RetroAchievements account.
+
+**Requirements:** PSP-3000 on ARK-5. PSP games only. Your copy has to be the release a game file was made for.
+
+**Documentation:** [Manual](docs/emblem.md) · [Adding a game](docs/emblem-adding-games.md) · [Known issues and test status](docs/emblem-known-issues.md) · [How it works](docs/emblem-how-it-works.md)
 
 ## Sidequest + Checkpoint
 
@@ -21,9 +41,10 @@ Two plugins for PSP games on ARK-5 custom firmware to manage Save states and Sav
 
 Save states for PSP games. Sidequest freezes the whole system exactly as it is and brings it back later. Every game has six slots of its own: a suspend slot and five states, each with a picture.
 
-| | |
-|---|---|
-| ![Sidequest menu](docs/images/sidequest-menu.jpg) | ![Continue prompt](docs/images/sidequest-continue-prompt.jpg) |
+<p align="center">
+  <img src="docs/images/sidequest-menu.jpg" alt="Sidequest menu" width="49%">
+  <img src="docs/images/sidequest-continue-prompt.jpg" alt="Continue prompt" width="49%">
+</p>
 
 - Hold SELECT on its own for one second to open the menu. X saves, □ loads, △ deletes.
 - L / R looks at other games' slots, and loading one switches games.
@@ -38,10 +59,11 @@ Save states for PSP games. Sidequest freezes the whole system exactly as it is a
 
 A history of your game saves. Checkpoint keeps a dated copy every time a game saves, so an earlier version can be put back. It also keeps a journey log, a diary of the playthrough that writes itself, and replaces the PS-button quit screen with one that shows when you last saved.
 
-| | |
-|---|---|
-| ![Checkpoint versions](docs/images/checkpoint-versions.jpg) | ![Quit screen](docs/images/quit-screen.jpg) |
-| ![Journey log](docs/images/journey-log.jpg) | |
+<p align="center">
+  <img src="docs/images/checkpoint-versions.jpg" alt="Checkpoint versions" width="32.5%">
+  <img src="docs/images/journey-log.jpg" alt="Journey log" width="32.5%">
+  <img src="docs/images/quit-screen.jpg" alt="Quit screen" width="32.5%">
+</p>
 
 - L + R + SELECT opens the menu: pick a save, pick a version, restore it. START pins a version so it is never pushed out.
 - SELECT in the menu opens the journey log.
@@ -55,7 +77,9 @@ A history of your game saves. Checkpoint keeps a dated copy every time a game sa
 
 CRT-style scanlines over any game, with the settings you choose remembered for each game.
 
-![Scanlines on, with the label that shows after a change](docs/images/scanline-label.jpg)
+<p align="center">
+  <img src="docs/images/scanline-label.jpg" alt="Scanlines on, with the label that shows after a change" width="60%">
+</p>
 
 - Seven strengths from 12.5% to 100%, with lines on every 2nd, 3rd or 4th row.
 - Changed from inside the game with L + R and one button. No menu.
@@ -68,25 +92,6 @@ This is a new plugin written from scratch. It is not based on, and shares no cod
 **Requirements:** PSP-3000 on ARK-5. Other PSP models are untested, and PS1 games have not been tried.
 
 **Documentation:** [Manual](docs/scanline.md) · [Known issues and test status](docs/scanline-known-issues.md) · [How it works](docs/scanline-how-it-works.md)
-
-## Emblem
-
-Achievements for PSP games, kept on the Memory Stick. Emblem watches a game's memory while you play and pops up a card when an achievement is earned. Nothing goes online.
-
-| | |
-|---|---|
-| ![An achievement unlocking](docs/images/emblem-unlock.gif) | ![The viewer](docs/images/emblem-viewer.jpg) |
-
-- **One text file per game.** The plugin knows no games itself; a game without a file is left alone.
-- **41 games, 1,731 achievements in this release**, every file written or checked by hand. Most files cover part of a game's set, and only Ys: The Oath in Felghana has been played on a PSP so far; see the [manual](docs/emblem.md#games) for the list.
-- Hold L + R + LEFT for half a second to see every achievement of the game, earned or locked.
-- Loading a save that is already far in catches up at once.
-
-Achievement titles and points come from the [RetroAchievements](https://retroachievements.org) sets, and the memory addresses from their public code notes. Emblem is not connected to RetroAchievements, and nothing earned here appears on a RetroAchievements account.
-
-**Requirements:** PSP-3000 on ARK-5. PSP games only. Your copy has to be the release a game file was made for.
-
-**Documentation:** [Manual](docs/emblem.md) · [Adding a game](docs/emblem-adding-games.md) · [Known issues and test status](docs/emblem-known-issues.md) · [How it works](docs/emblem-how-it-works.md)
 
 *The pictures on this page are photos and a video of a PSP-3000 screen.*
 
