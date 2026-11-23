@@ -23,7 +23,7 @@ Achievements for PSP games, kept on the Memory Stick. Emblem watches a game's me
 </p>
 
 - **One text file per game.** The plugin knows no games itself; a game without a file is left alone.
-- **41 games, 1,731 achievements in this release**, every file written or checked by hand with AI assistance. Most files cover part of a game's set, and only Ys: The Oath in Felghana has been played on a PSP so far; see the [manual](docs/emblem.md#games) for the list.
+- **41 games, 1,731 achievements in this release**, every file written or checked by hand with AI assistance. Most files cover part of a game's set, and only Ys: The Oath in Felghana and Trails in the Sky have been played on a PSP so far; see the [manual](docs/emblem.md#games) for the list.
 - Hold L + R + LEFT for half a second to see every achievement of the game, earned or locked.
 - Loading a save that is already far in catches up at once.
 

@@ -3,9 +3,9 @@
 Everything here refers to the one console these plugins have run on: a **PSP-3000 with ARK-5**, games as ISO files on the Memory Stick, launched from ARK's custom launcher. Builds in this release: Sidequest 1.1 `built Nov 23 2026 06:52:22`, Checkpoint 1.0 `built Nov 22 2026 02:55:44`.
 
 **About these builds.**
-- **Sidequest 1.1** adds the flash re-scan after a load, the battery guard and the 50% brightness to Sidequest 1.0. The re-scan was confirmed on the PSP with a test build of Nov 23 2026 06:13:44 that carries the same fix code. The 1.1 build itself has not run on a PSP yet.
-- **Checkpoint 1.0** is the code confirmed below with the version number set to 1.0 and one addition: the quit screen's L and R buttons, which open Sidequest's menu and Emblem's viewer. That addition and the 1.0 build itself have not run on a PSP yet.
-- The other results under "Confirmed on the PSP-3000" were obtained with the builds made before 1.0.
+- **Sidequest 1.1** adds the flash re-scan after a load, the battery guard and the 50% brightness to Sidequest 1.0. The re-scan was confirmed on the PSP with a test build of Nov 23 2026 06:13:44 that carries the same fix code, and Sidequest 1.1 has since run on the PSP as well.
+- **Checkpoint 1.0** is the code confirmed below with the version number set to 1.0 and one addition: the quit screen's L and R buttons, which open Sidequest's menu and Emblem's viewer. Checkpoint 1.0, with that addition, has run on the PSP.
+- The detailed results under "Confirmed on the PSP-3000" were first obtained with the builds made before 1.0. The points listed under "Not yet confirmed" have not been checked one by one.
 
 ## Disclosure
 
@@ -100,10 +100,12 @@ At 5% or less without the charger, saves and loads are refused with "Battery too
 | Checkpoint quit screen | PS button opens it; O returns to the game; X quits to the launcher |
 | Suspend and quit | Hand-over from Checkpoint to Sidequest, slot written, game closed |
 | POWER slide on a menu | The menu closes and the PSP sleeps instead of hanging |
+| Quit screen: L and R | L opens Sidequest's menu and R opens Emblem's viewer |
+| Sidequest 1.1 and Checkpoint 1.0 | The release builds run on the PSP |
 
 **Sidequest's flash re-scan, confirmed on the PSP-3000**
 
-These results are from the test build of Nov 23 2026 06:13:44, which carries the same fix code as 1.1. Each re-scan took 0.96 to 0.98 s and corrected 2 to 7 table entries.
+These results are from the test build of Nov 23 2026 06:13:44, which carries the same fix code as 1.1; 1.1 has run on the PSP since. Each re-scan took 0.96 to 0.98 s and corrected 2 to 7 table entries.
 
 | What | Result |
 |---|---|
@@ -121,9 +123,7 @@ These results are from the test build of Nov 23 2026 06:13:44, which carries the
 
 | Area | Status |
 |---|---|
-| Sidequest 1.1 build | The build in this release (Nov 23 2026 06:52:22) has not run on a PSP; the results above are from the test build |
 | Sidequest battery guard | Refusing at 5% or less has not been seen; the battery was never that low |
-| Quit screen: L and R | New in this release. Opening Sidequest's menu and Emblem's viewer from the quit screen has not run on a PSP |
 | Journey log entries | The rule that follows the title or the detail and ignores numbers has not run on a PSP. A second entry after moving to a new place, and system data being left out, have not been reported |
 | Checkpoint restore | Logic passes its PC tests; not reported from hardware |
 | Sidequest state slots 1 to 5 in detail | Overwrite, delete, and all five in use have not been walked through one by one |

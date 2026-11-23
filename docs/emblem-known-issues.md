@@ -8,11 +8,11 @@ This plugin was written by Claude, Anthropic’s AI model, from my ideas and my 
 
 ## Known issues
 
-**1. The release build has not been confirmed on the PSP yet.**
-Two early test builds ran on the PSP-3000 in Ys: The Oath in Felghana: the card drew correctly next to another plugin, the memory values matched the game, and an achievement unlocked on loading a save. The release has the same display code and the same Felghana rules, checked against those builds on a PC (apart from the difficulty change in issue 5), plus the game-file engine and the viewer, which have only run on a PC.
+**1. What has run on the PSP.**
+The release build has run on the PSP-3000 in Ys: The Oath in Felghana and in Trails in the Sky: cards pop as achievements are earned, the viewer opens, and an achievement unlocked on loading a save. Two early test builds ran there first. Each of the other game files is untested until someone plays that game (issue 2).
 
-**2. Only one game file has been played on a PSP.**
-All 42 files were written or checked by hand, with AI assistance, against RetroAchievements' public memory notes, and on a PC each loads without errors and unlocks nothing from empty memory. Only Ys: The Oath in Felghana has been played with Emblem. A rule in any other file can still be wrong: if an achievement pops when it should not, delete its line from the file.
+**2. Only two game files have been played on a PSP.**
+All 42 files were written or checked by hand, with AI assistance, against RetroAchievements' public memory notes, and on a PC each loads without errors and unlocks nothing from empty memory. Only Ys: The Oath in Felghana and Trails in the Sky have been played with Emblem. A rule in any other file can still be wrong: if an achievement pops when it should not, delete its line from the file.
 
 **3. Most files cover part of a set.**
 A file holds only what the notes show plainly. Challenge runs are mostly left out, and the first lines of each file list what is missing. Emblem's achievement numbers stop at 255, so Valkyria Chronicles 2 (314 in the set) and Zero no Kiseki (257) could never be complete.
@@ -54,16 +54,14 @@ In the emulator the Felghana file costs about 11,500 MIPS instructions per look 
 | Memory values | Gold, EXP, HP, level and max HP read from the notes' addresses matched the game |
 | "Not had" is -1 | The game keeps -1, not 0, for things not carried. The first build never unlocked anything because of it; fixed |
 | An unlock | "Getting to Know You" unlocked on loading a save and was written to the Memory Stick |
+| The release build | Runs on the PSP: cards, the viewer, and the viewer opened from Checkpoint's quit screen |
 
 **Not yet confirmed on a PSP**
 
 | Area | Status |
 |---|---|
-| The release build as a whole | No report yet |
-| Opening the viewer from Checkpoint's quit screen | New in this release; not run |
-| The viewer | Drawn on a PC only. Its freeze, PS-button and POWER handling is Checkpoint's, which is confirmed there |
 | The "already earned" card | The one unlock seen came as a normal card |
-| The 41 game files other than Felghana's | None has been played |
+| The 40 game files other than Felghana's and Trails in the Sky's | None has been played |
 
 **Tested on a PC only**
 
