@@ -7,7 +7,7 @@
 
 #include <psptypes.h>
 
-#define SQ_VERSION_STR   "1.2"
+#define SQ_VERSION_STR   "1.3"
 #define SQ_BUILD_STAMP   __DATE__ " " __TIME__
 
 /* ---- Memory layout (64MB models) ----------------------------------------

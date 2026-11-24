@@ -30,6 +30,7 @@ int module_start(SceSize args, void *argp)
     config_load();
     sq_log("Sidequest %s (built " SQ_BUILD_STAMP ") start: model=%d keyconfig=%03X", SQ_VERSION_STR,
            sceKernelGetModel(), sceKernelInitKeyConfig());
+    sq_log("memory free: kernel %d KB (largest piece %d KB), user %d KB (largest %d KB)", (int)(sceKernelPartitionTotalFreeMemSize(1) >> 10), (int)(sceKernelPartitionMaxFreeMemSize(1) >> 10), (int)(sceKernelPartitionTotalFreeMemSize(2) >> 10), (int)(sceKernelPartitionMaxFreeMemSize(2) >> 10));
 
     /* Games only, and only on models this was written for. Anywhere else
      * the plugin leaves without touching anything. */

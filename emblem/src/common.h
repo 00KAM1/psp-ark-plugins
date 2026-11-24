@@ -2,7 +2,7 @@
 #define AC_COMMON_H
 #include <psptypes.h>
 
-#define AC_VERSION_STR  "1.1"                   /* the user sets the version */
+#define AC_VERSION_STR  "1.2"                   /* the user sets the version */
 #define AC_BUILD_STAMP  __DATE__ " " __TIME__
 #define AC_DIR          "ms0:/EMBLEM"
 #define AC_LOG_PATH     AC_DIR "/emblem.log"

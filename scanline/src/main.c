@@ -138,6 +138,7 @@ static int main_thread(SceSize args, void *argp)
     g_ready = 1;
 
     sl_log("Scanline " SL_VERSION_STR " (built " SL_BUILD_STAMP ") start: model=%d", sceKernelGetModel());
+    sl_log("memory free: kernel %d KB (largest piece %d KB), user %d KB (largest %d KB)", (int)(sceKernelPartitionTotalFreeMemSize(1) >> 10), (int)(sceKernelPartitionMaxFreeMemSize(1) >> 10), (int)(sceKernelPartitionTotalFreeMemSize(2) >> 10), (int)(sceKernelPartitionMaxFreeMemSize(2) >> 10));
     sl_log("hook: %s at %08X (first words %08X %08X)", g_hook_how, hook_target(), hook_word(0), hook_word(1));
     sl_log("config %s: enabled=%d strength=%d spacing=%d mode=%d hotkeys=%d fast=%d",
            from_file ? "read" : "not found, defaults", g_cfg.enabled, g_cfg.strength, g_cfg.spacing,

@@ -173,11 +173,16 @@ static void wait_release(void)
  * out of a screen must switch it off.
  * on: 1 hide, 0 show, -1 show and do not hide again (see wait_press).
  */
+#define PAD_GAME_BUTTONS 0x0000FFFFu
+/* 0 leaves the switch unused. It was off for three test builds on Nov 24 2026 while the
+ * system's save screen was failing; that turned out to be kernel memory, not this. */
+#define PAD_HIDE_ENABLED 1
 static int g_pad_hidden, g_pad_off;
 static void pad_hide(int on)
 {
     static u32 (*intercept)(u32 buttons, u32 mode);
     static int looked;
+    if (!PAD_HIDE_ENABLED) return;
     if (!looked) {
         looked = 1;
         intercept = (void *)sctrlHENFindFunction("sceController_Service", "sceCtrl_driver", 0x7CA723DC);
@@ -187,7 +192,9 @@ static void pad_hide(int on)
     if (on < 0) g_pad_off = 1;
     if (on > 0 && g_pad_off) return;
     if (on == 0) for (int t = 0; t < 100 && read_buttons(); t++) sceKernelDelayThread(20 * 1000);   /* up to 2 s for the buttons to be let go */
-    intercept(0x0000FFFF, on > 0 ? 1 : 0);
+    /* The sixteen ordinary buttons. The PS button and the other system ones are above them
+     * and are left alone. */
+    intercept(PAD_GAME_BUTTONS, on > 0 ? 1 : 0);
     g_pad_hidden = on > 0;
 }
 
@@ -223,8 +230,33 @@ int slot_thumb_write(int k, const u16 *img, int w, int h);
 SceUID slot_thumb_open(int k, int *w, int *h);
 static int g_suspend;                       /* the save in progress is a suspend-and-quit */
 static int g_save_ok;                       /* the last do_save wrote its slot */
-static u16 g_shot[SHOT_W * SHOT_H];             /* the game's screen when the menu opened */
+/* The game's screen when the menu opened, for the slot's picture. 64 KB: taken
+ * when a menu opens and given back when it closes, so it is not held through
+ * the whole game. With none to be had the slot is saved without a picture. */
+static u16 *g_shot;
+static SceUID g_shot_id = -1;
 static int g_shot_ok;
+
+int blit_grab_shot(u16 *out);
+
+static void shot_take(void)
+{
+    g_shot_ok = 0;
+    if (g_shot_id < 0) {
+        g_shot_id = sceKernelAllocPartitionMemory(PSP_MEMORY_PARTITION_KERNEL, "SqShot", PSP_SMEM_High, SHOT_W * SHOT_H * 2, NULL);
+        g_shot = g_shot_id >= 0 ? sceKernelGetBlockHeadAddr(g_shot_id) : NULL;
+        if (!g_shot) sq_log("ui: no memory for the slot picture (%08X)", g_shot_id);
+    }
+    if (g_shot) g_shot_ok = blit_grab_shot(g_shot) == 0;
+}
+
+static void shot_give(void)
+{
+    g_shot_ok = 0;
+    g_shot = NULL;
+    if (g_shot_id >= 0) sceKernelFreePartitionMemory(g_shot_id);
+    g_shot_id = -1;
+}
 /* The picture on screen is only redrawn when it has to be: it is read from
  * the Memory Stick each time, which is too slow to do on every key press. */
 static int g_pic_slot = -1, g_pic_page = -1, g_pic_dirty = 1;
@@ -922,7 +954,7 @@ static void run_menu(void)
     home_block(1);
     freeze_game();
     power_hold();
-    g_shot_ok = blit_grab_shot(g_shot) == 0;   /* before the menu paints over the game */
+    shot_take();                                /* before the menu paints over the game */
     load_games();
     show_page(0);
     set_status(C_GREY, "");
@@ -948,6 +980,7 @@ static void run_menu(void)
         else if (b & PSP_CTRL_TRIANGLE) do_delete(g_sel);
         else if (b & PSP_CTRL_CIRCLE)   break;
     }
+    shot_give();
     show_page(0);                                       /* leave the slot code on the running game */
     if (!g_slide) wait_release();
     thaw_game();
@@ -1126,7 +1159,7 @@ static void suspend_and_quit(void)
     home_block(1);
     freeze_game();
     power_hold();
-    g_shot_ok = blit_grab_shot(g_shot) == 0;
+    shot_take();
     load_games();
     show_page(0);
     set_status(C_GREY, "");
@@ -1137,6 +1170,7 @@ static void suspend_and_quit(void)
     g_suspend = 1;
     int resumed = do_save(k);
     g_suspend = 0;
+    shot_give();
     if (resumed) {                                      /* we are the game coming back, not the one leaving */
         thaw_game();
         home_block(0);

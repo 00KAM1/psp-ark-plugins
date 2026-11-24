@@ -20,8 +20,35 @@
 #include "common.h"
 
 #define PATH_MAX_ 200
-static u8 g_buf[16 * 1024];
-static u8 g_buf2[16 * 1024];
+/* Work buffers. They used to be 32 KB of the plugin's own memory, held for the
+ * whole game; kernel memory is short with several plugins loaded, and the
+ * PSP's own save screen needs room there too. Now they are taken for the
+ * length of one job and given back. If the system has none to give, two small
+ * ones kept here do the job more slowly. */
+#define BUF_BIG 16384
+static u8  g_small[2048], g_small2[2048];
+static u8 *g_buf = g_small, *g_buf2 = g_small2;
+static int g_buf_size = sizeof(g_small);
+static SceUID g_buf_id = -1;
+static int g_buf_depth;
+
+static void buf_take(void)
+{
+    if (g_buf_depth++) return;
+    g_buf_id = sceKernelAllocPartitionMemory(PSP_MEMORY_PARTITION_KERNEL, "CpWork", PSP_SMEM_High, 2 * BUF_BIG, NULL);
+    if (g_buf_id < 0) return;
+    g_buf = sceKernelGetBlockHeadAddr(g_buf_id);
+    g_buf2 = g_buf + BUF_BIG;
+    g_buf_size = BUF_BIG;
+}
+
+static void buf_give(void)
+{
+    if (--g_buf_depth) return;
+    g_buf = g_small; g_buf2 = g_small2; g_buf_size = sizeof(g_small);
+    if (g_buf_id >= 0) sceKernelFreePartitionMemory(g_buf_id);
+    g_buf_id = -1;
+}
 
 typedef struct { char name[BT_FILE_MAX]; u32 size; } FileEnt;
 
@@ -90,7 +117,7 @@ u32 vault_dir_kb(const char *dir)
     return kb;
 }
 
-static int copy_file(const char *src, const char *dst)
+static int copy_file_in(const char *src, const char *dst)
 {
     SceUID in = sceIoOpen(src, PSP_O_RDONLY, 0);
     if (in < 0) return -1;
@@ -98,7 +125,7 @@ static int copy_file(const char *src, const char *dst)
     if (out < 0) { sceIoClose(in); return -1; }
     int r = 0;
     for (;;) {
-        int n = sceIoRead(in, g_buf, sizeof(g_buf));
+        int n = sceIoRead(in, g_buf, g_buf_size);
         if (n < 0) { r = -1; break; }
         if (n == 0) break;
         if (sceIoWrite(out, g_buf, n) != n) { r = -1; break; }
@@ -109,7 +136,7 @@ static int copy_file(const char *src, const char *dst)
     return r;
 }
 
-static int same_file(const char *a, const char *b)
+static int same_file_in(const char *a, const char *b)
 {
     SceUID fa = sceIoOpen(a, PSP_O_RDONLY, 0);
     if (fa < 0) return 0;
@@ -117,8 +144,8 @@ static int same_file(const char *a, const char *b)
     if (fb < 0) { sceIoClose(fa); return 0; }
     int same = 1;
     for (;;) {
-        int na = sceIoRead(fa, g_buf, sizeof(g_buf));
-        int nb = sceIoRead(fb, g_buf2, sizeof(g_buf2));
+        int na = sceIoRead(fa, g_buf, g_buf_size);
+        int nb = sceIoRead(fb, g_buf2, g_buf_size);
         if (na != nb || na < 0 || memcmp(g_buf, g_buf2, na)) { same = 0; break; }
         if (na == 0) break;
     }
@@ -126,6 +153,23 @@ static int same_file(const char *a, const char *b)
     sceIoClose(fb);
     return same;
 }
+
+static int copy_file(const char *src, const char *dst)
+{
+    buf_take();
+    int r = copy_file_in(src, dst);
+    buf_give();
+    return r;
+}
+
+static int same_file(const char *a, const char *b)
+{
+    buf_take();
+    int r = same_file_in(a, b);
+    buf_give();
+    return r;
+}
+
 
 /* Same file names, sizes and contents in both folders. */
 static int same_dir(const char *a, const char *b)
@@ -404,12 +448,12 @@ int vault_delete_version(const char *save, const char *stamp)
 /* A text value from a PARAM.SFO (e.g. SAVEDATA_TITLE, SAVEDATA_DETAIL). */
 /* raw = 1 keeps bytes above 0x7E as they are (the text is UTF-8); raw = 0
  * turns them into '?' for the 8x8 font. */
-static int sfo_string(const char *sfo_path, const char *key, char *out, int len, int raw)
+static int sfo_string_in(const char *sfo_path, const char *key, char *out, int len, int raw)
 {
     out[0] = 0;
     SceUID fd = sceIoOpen(sfo_path, PSP_O_RDONLY, 0);
     if (fd < 0) return -1;
-    int n = sceIoRead(fd, g_buf, sizeof(g_buf));
+    int n = sceIoRead(fd, g_buf, g_buf_size);
     sceIoClose(fd);
     if (n < 20 || memcmp(g_buf, "\0PSF", 4)) return -1;
     u32 keys, data, count;
@@ -439,6 +483,14 @@ static int sfo_string(const char *sfo_path, const char *key, char *out, int len,
         return 0;
     }
     return -1;
+}
+
+static int sfo_string(const char *sfo_path, const char *key, char *out, int len, int raw)
+{
+    buf_take();
+    int r = sfo_string_in(sfo_path, key, out, len, raw);
+    buf_give();
+    return r;
 }
 
 int vault_sfo_string(const char *sfo_path, const char *key, char *out, int len)

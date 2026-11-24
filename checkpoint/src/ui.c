@@ -12,6 +12,7 @@
 #include "jtext.h"
 
 int hook_busy(void);
+void hook_mem_report(void);
 void hook_flush(void);
 const char *hook_game(void);
 
@@ -199,11 +200,16 @@ static void power_done(void)
  * out of a screen must switch it off.
  * on: 1 hide, 0 show, -1 show and do not hide again (see wait_press).
  */
+#define PAD_GAME_BUTTONS 0x0000FFFFu
+/* 0 leaves the switch unused. It was off for three test builds on Nov 24 2026 while the
+ * system's save screen was failing; that turned out to be kernel memory, not this. */
+#define PAD_HIDE_ENABLED 1
 static int g_pad_hidden, g_pad_off;
 static void pad_hide(int on)
 {
     static u32 (*intercept)(u32 buttons, u32 mode);
     static int looked;
+    if (!PAD_HIDE_ENABLED) return;
     if (!looked) {
         looked = 1;
         intercept = (void *)sctrlHENFindFunction("sceController_Service", "sceCtrl_driver", 0x7CA723DC);
@@ -213,7 +219,9 @@ static void pad_hide(int on)
     if (on < 0) g_pad_off = 1;
     if (on > 0 && g_pad_off) return;
     if (on == 0) for (int t = 0; t < 100 && read_buttons(); t++) sceKernelDelayThread(20 * 1000);   /* up to 2 s for the buttons to be let go */
-    intercept(0x0000FFFF, on > 0 ? 1 : 0);
+    /* The sixteen ordinary buttons. The PS button and the other system ones are above them
+     * and are left alone. */
+    intercept(PAD_GAME_BUTTONS, on > 0 ? 1 : 0);
     g_pad_hidden = on > 0;
 }
 
@@ -922,6 +930,7 @@ int ui_thread(SceSize args, void *argp)
     g_title[sizeof(g_title) - 1] = 0;
     journey_clean(g_title, sizeof(g_title), g_title);
     sq_log("game id '%s' title '%s'", g_disc, g_title);
+    sq_log("memory free: kernel %d KB (largest piece %d KB), user %d KB (largest %d KB)", (int)(sceKernelPartitionTotalFreeMemSize(1) >> 10), (int)(sceKernelPartitionMaxFreeMemSize(1) >> 10), (int)(sceKernelPartitionTotalFreeMemSize(2) >> 10), (int)(sceKernelPartitionMaxFreeMemSize(2) >> 10));
 
     home_setup();
     power_lookup();
@@ -930,6 +939,7 @@ int ui_thread(SceSize args, void *argp)
         sceKernelDelayThread(20 * 1000);
         hook_play_tick();
         hook_poll();                                    /* make a copy when the game has just saved */
+        hook_mem_report();
         if (g_quit_on) {
             /* keep the system's screen away; a game or another plugin may switch it back */
             if ((tick++ & 15) == 0 && g_pop_get() != 0) g_pop_set(0);

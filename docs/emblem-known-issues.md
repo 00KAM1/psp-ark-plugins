@@ -1,6 +1,6 @@
-# Emblem: known issues and test status (v1.1)
+# Emblem: known issues and test status (v1.2)
 
-Everything here refers to the one console this plugin was made for: a **PSP-3000 with ARK-5**, games as ISO files on the Memory Stick, with Scanline and MissyHUD installed alongside. Build in this release: Emblem 1.1, `built Nov 24 2026 10:16:57`. It has run on the PSP.
+Everything here refers to the one console this plugin was made for: a **PSP-3000 with ARK-5**, games as ISO files on the Memory Stick, with Scanline and MissyHUD installed alongside. Build in this release: Emblem 1.2, `built Nov 24 2026 13:29:03`. The same code ran on the PSP in the test build of Nov 24 2026 13:03:36; the release build differs from it only in the version number. 1.2 reads the game's file into memory it borrows for that moment; if the system has none to lend, Emblem stays idle for that game and says so in `emblem.log`.
 
 ## Disclosure
 

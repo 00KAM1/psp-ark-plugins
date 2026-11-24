@@ -1,4 +1,4 @@
-# Emblem 1.1 manual
+# Emblem 1.2 manual
 
 **Achievements for PSP games, kept on the Memory Stick.** Emblem watches a game's memory while you play and pops up a card when an achievement is earned. What you earn is written to a plain text file on the Memory Stick. Nothing goes online.
 
@@ -141,7 +141,7 @@ The earned file is plain text, one line per achievement:
 
 ## The log
 
-`emblem.log` starts each run with `Emblem 1.1 (built <date> <time>) start: game '<GAME ID>'`. After that:
+`emblem.log` starts each run with `Emblem 1.2 (built <date> <time>) start: game '<GAME ID>'`. After that:
 
 - whether a file for the game was found, how many achievements it has, and any line of it that could not be read, with its line number;
 - how many achievements were already earned;

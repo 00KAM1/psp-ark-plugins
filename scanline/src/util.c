@@ -319,7 +319,26 @@ void game_key(char *out, const char *path)
 }
 
 #define GAMES_MAX 8192                                          /* about 200 games */
-static char g_games_in[GAMES_MAX], g_games_out[GAMES_MAX];
+/* Two work buffers, 16 KB together, taken for the length of one read or write of
+ * games.txt and given back: kernel memory is short with several plugins loaded. */
+static char *g_games_in, *g_games_out;
+static SceUID g_games_id = -1;
+
+static int games_take(void)
+{
+    g_games_id = sceKernelAllocPartitionMemory(1, "SlGames", 1 /* high */, 2 * GAMES_MAX, NULL);
+    if (g_games_id < 0) return -1;
+    g_games_in = sceKernelGetBlockHeadAddr(g_games_id);
+    g_games_out = g_games_in + GAMES_MAX;
+    return 0;
+}
+
+static void games_give(void)
+{
+    if (g_games_id >= 0) sceKernelFreePartitionMemory(g_games_id);
+    g_games_id = -1;
+    g_games_in = g_games_out = 0;
+}
 
 static int games_read(void)
 {
@@ -342,7 +361,7 @@ static const char *line_is(const char *line, const char *key)
     return *line == '=' ? line + 1 : 0;
 }
 
-int games_get(const char *key, SlConfig *c)
+static int games_get_in(const char *key, SlConfig *c)
 {
     games_read();
     for (const char *line = g_games_in; *line; ) {
@@ -370,7 +389,15 @@ int games_get(const char *key, SlConfig *c)
     return 0;
 }
 
-int games_set(const char *key, const SlConfig *c)
+int games_get(const char *key, SlConfig *c)
+{
+    if (games_take() < 0) return 0;             /* no memory: as if the game had no line */
+    int r = games_get_in(key, c);
+    games_give();
+    return r;
+}
+
+static int games_set_in(const char *key, const SlConfig *c)
 {
     char mine[80];
     int mlen = sl_snprintf(mine, sizeof(mine), "%s = %d %d %d %d\r\n", key, c->enabled, c->strength, c->spacing, c->mode == 2 ? 2 : 1);
@@ -413,4 +440,12 @@ int games_set(const char *key, const SlConfig *c)
     int rr = sceIoRename(SL_DIR "/games.tmp", SL_GAMES_PATH) < 0 ? -4 : 0;
     sl_card_end();
     return rr;
+}
+
+int games_set(const char *key, const SlConfig *c)
+{
+    if (games_take() < 0) return -6;            /* no memory for the work buffers */
+    int r = games_set_in(key, c);
+    games_give();
+    return r;
 }

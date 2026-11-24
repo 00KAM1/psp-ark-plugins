@@ -7,7 +7,7 @@
 #define BT_COMMON_H
 #include <psptypes.h>
 
-#define BT_VERSION_STR  "1.1"
+#define BT_VERSION_STR  "1.2"
 #define BT_BUILD_STAMP   __DATE__ " " __TIME__
 #define BT_DIR          "ms0:/CHECKPOINT"
 #define BT_LOG_PATH     BT_DIR "/checkpoint.log"

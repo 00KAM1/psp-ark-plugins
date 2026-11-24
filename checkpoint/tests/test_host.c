@@ -86,6 +86,20 @@ int main(void)
     CHECK(vault_backup("ULUS10545SAVE00", s, 10, 10, 0, 0xFFFFFFFF) == BT_OK && !exists(VAULT "NEW.TMP") &&
           get(VAULT "20261119_140000/DATA.BIN", buf, sizeof(buf)) == (int)sizeof(big), "a leftover temp folder is cleaned up");
 
+    /* the system has no memory to lend: the small spare buffers do the same job */
+    {
+        extern int g_shim_no_memory;
+        g_shim_no_memory = 1;
+        put(LIVE "PARAM.SFO", "sfo-nomem", 9);
+        stamp(s, 15 * 60, 0);
+        CHECK(vault_backup("ULUS10545SAVE00", s, 10, 10, 0, 0xFFFFFFFF) == BT_OK &&
+              get(VAULT "20261119_150000/DATA.BIN", buf, sizeof(buf)) == (int)sizeof(big) && !memcmp(buf, big, sizeof(big)),
+              "with no memory to borrow the copy is still byte-identical");
+        stamp(s, 15 * 60 + 30, 0);
+        CHECK(vault_backup("ULUS10545SAVE00", s, 10, 10, 0, 0xFFFFFFFF) == BT_SAME, "with no memory to borrow an unchanged save is still recognised");
+        g_shim_no_memory = 0;
+    }
+
     /* restore */
     put(LIVE "DATA.BIN", "ruined", 6);
     put(LIVE "EXTRA.BIN", "new file the old version never had", 34);

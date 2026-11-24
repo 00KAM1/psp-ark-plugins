@@ -8,10 +8,10 @@ Emblem, Sidequest, Checkpoint and Scanline each work on their own. They are inde
 
 | Plugin | Version | What it does | Opens with |
 |---|---|---|---|
-| [**Emblem**](#emblem) | 1.1 | Achievements, earned and kept on the Memory Stick. One text file per game. | Hold **L + R + LEFT**, ½ s |
-| [**Sidequest**](#sidequest) | 1.2 | Save states. Freezes the whole system and brings it back later: one suspend slot and five state slots for every game. | Hold **SELECT** alone, 1 s |
-| [**Checkpoint**](#checkpoint) | 1.1 | A dated history of your game saves, a journey log that writes itself, and a PS-button quit screen that shows when you last saved. | **L + R + SELECT**, PS button |
-| [**Scanline**](#scanline) | 1.1 | CRT-style scanlines over any game, with settings kept per game. | Hold **L + R** with a button, ½ s |
+| [**Emblem**](#emblem) | 1.2 | Achievements, earned and kept on the Memory Stick. One text file per game. | Hold **L + R + LEFT**, ½ s |
+| [**Sidequest**](#sidequest) | 1.3 | Save states. Freezes the whole system and brings it back later: one suspend slot and five state slots for every game. | Hold **SELECT** alone, 1 s |
+| [**Checkpoint**](#checkpoint) | 1.2 | A dated history of your game saves, a journey log that writes itself, and a PS-button quit screen that shows when you last saved. | **L + R + SELECT**, PS button |
+| [**Scanline**](#scanline) | 1.2 | CRT-style scanlines over any game, with settings kept per game. | Hold **L + R** with a button, ½ s |
 | [**Runtime**](#runtime) | 1.0 | Counts time on and battery use for the [Shelf launcher](https://github.com/00KAM1/psp-shelf-launcher). **Needs Shelf: it shows nothing by itself.** | No buttons |
 
 Each plugin has its own version number, which goes up only when that plugin's files change. All of them come in one release file, and the [changelog](CHANGELOG.md) says which ones to replace when you update.
@@ -148,7 +148,7 @@ Download the newest `psp-ark-plugins` zip from the [Releases](../../releases) pa
    Runtime's line says `always` because it also has to run outside games.
 4. Restart the PSP.
 
-**Updating:** copy over the `.prx` and the `config.txt` of the plugins whose version went up; the [changelog](CHANGELOG.md) lists them. For Sidequest 1.2 that is `sidequest.prx` only; states saved with 1.1 still load. Coming from 1.0, also replace `SIDEQUEST/config.txt`, and save your states again.
+**Updating:** copy over the `.prx` and the `config.txt` of the plugins whose version went up; the [changelog](CHANGELOG.md) lists them. For this release that is all four of `sidequest.prx`, `checkpoint.prx`, `emblem.prx` and `scanline.prx`, with no settings file. Coming from Sidequest 1.0, also replace `SIDEQUEST/config.txt`. Delete your states before any update and take new ones.
 
 ## Buttons at a glance
 
@@ -183,6 +183,7 @@ Some of these can be changed in the plugin's `config.txt`:
 ## If something goes wrong
 
 - **Screen stays dark after a Sidequest save or load:** slide the POWER switch up. The save or load then finishes; nothing is lost.
+- **A game's own save or load screen opens blank and stays stuck:** fixed in Sidequest 1.3, Checkpoint 1.2, Emblem 1.2 and Scanline 1.2 (the PSP was short of kernel memory). If it still happens, switch one plugin off and send `checkpoint.log`: its `memory free` lines show how much was left.
 - **Text missing after a Sidequest load:** fixed in Sidequest 1.1. If it still happens, power off fully and send `sidequest.log`.
 - **Top rows or Scanline's label flicker in one game:** hold L + R + □ to try Scanline's mode 2 in that game.
 - **An achievement pops when it should not:** delete its line from the game's file in `ms0:/EMBLEM/games/`, and from `ms0:/EMBLEM/earned/`.

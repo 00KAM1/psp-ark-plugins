@@ -36,7 +36,7 @@ static char   g_game[16];
 static char   g_game_path[64], g_file_name[40], g_earned_path[64];
 static EmGame g_em;
 static AcSet  g_have;
-static char   g_text[32 * 1024];
+#define TEXT_MAX (32 * 1024)                 /* the game file is read into memory taken for that moment only */
 
 /* ---- the queue of pop-ups ------------------------------------------------- */
 static AcToast g_tbuf[2];
@@ -192,12 +192,16 @@ static int load_game_file(void)
     ac_snprintf(g_game_path, sizeof(g_game_path), AC_DIR "/%s", g_file_name);
     SceUID fd = sceIoOpen(g_game_path, PSP_O_RDONLY, 0);
     if (fd < 0) { ac_log("no %s: nothing to watch in this game, staying idle", g_file_name); return 0; }
-    int n = sceIoRead(fd, g_text, sizeof(g_text));
+    SceUID id = sceKernelAllocPartitionMemory(PSP_MEMORY_PARTITION_KERNEL, "EmText", PSP_SMEM_High, TEXT_MAX, NULL);
+    if (id < 0) { sceIoClose(fd); ac_log("no memory to read %s (%08X): staying idle", g_file_name, id); return 0; }
+    char *text = sceKernelGetBlockHeadAddr(id);
+    int n = sceIoRead(fd, text, TEXT_MAX);
     sceIoClose(fd);
-    if (n >= (int)sizeof(g_text)) { ac_log("%s is too big (over %d KB): staying idle", g_file_name, (int)sizeof(g_text) / 1024); return 0; }
-    if (n <= 0) { ac_log("%s could not be read: staying idle", g_file_name); return 0; }
-    g_text[n] = 0;
-    int lines = em_load(&g_em, g_text, n, file_error);
+    if (n >= TEXT_MAX) { sceKernelFreePartitionMemory(id); ac_log("%s is too big (over %d KB): staying idle", g_file_name, TEXT_MAX / 1024); return 0; }
+    if (n <= 0) { sceKernelFreePartitionMemory(id); ac_log("%s could not be read: staying idle", g_file_name); return 0; }
+    text[n] = 0;
+    int lines = em_load(&g_em, text, n, file_error);
+    sceKernelFreePartitionMemory(id);
     ac_log("%s: '%s', %d achievements with a rule (%d listed), %d lines skipped, %d of %d nodes",
            g_file_name, g_em.title, g_em.total, lines, g_em.errors, g_em.nnodes, EM_MAX_NODES);
     if (g_em.game[0] && strcmp(g_em.game, g_game)) ac_log("note: the file says it is for %s", g_em.game);
@@ -223,6 +227,7 @@ static int main_thread(SceSize args, void *argp)
     sceKernelDelayThread(4 * 1000 * 1000);      /* let the game boot first (Checkpoint's rule) */
     find_game();
     ac_log("Emblem " AC_VERSION_STR " (built " AC_BUILD_STAMP ") start: game '%s', hook %s", g_game, g_hook_how);
+    ac_log("memory free: kernel %d KB (largest piece %d KB), user %d KB (largest %d KB)", (int)(sceKernelPartitionTotalFreeMemSize(1) >> 10), (int)(sceKernelPartitionMaxFreeMemSize(1) >> 10), (int)(sceKernelPartitionTotalFreeMemSize(2) >> 10), (int)(sceKernelPartitionMaxFreeMemSize(2) >> 10));
     if (!g_game[0] || !load_game_file()) {
         hook_remove();
         return 0;

@@ -1,8 +1,9 @@
 # Sidequest + Checkpoint: known issues and test status
 
-Everything here refers to the one console these plugins have run on: a **PSP-3000 with ARK-5**, games as ISO files on the Memory Stick, launched from ARK's custom launcher. Builds in this release: Sidequest 1.2 `built Nov 24 2026 10:28:48`, Checkpoint 1.1 `built Nov 24 2026 10:16:53`. Both have run on the PSP.
+Everything here refers to the one console these plugins have run on: a **PSP-3000 with ARK-5**, games as ISO files on the Memory Stick, launched from ARK's custom launcher. Builds in this release: Sidequest 1.3 `built Nov 24 2026 13:28:58`, Checkpoint 1.2 `built Nov 24 2026 13:29:00`. The same code ran on the PSP in the test builds of Nov 24 2026 13:13:48 and 13:13:46; the release builds differ from those only in the version number.
 
 **About these builds.**
+- **Sidequest 1.3 and Checkpoint 1.2** hold less memory while a game runs (see [the changelog](../CHANGELOG.md)). On the PSP, with the test builds named above: a game saved normally on a fresh start and after a suspend and resume, in Ys: The Oath in Felghana and Trails in the Sky, with about 200 KB of kernel memory free (measured), where the releases of 2026-11-24 left roughly 65 KB (worked out from what was freed). Not checked one by one: a slot saved without its picture, and a copy made with the small spare buffers; both only happen when the system has no memory to lend.
 - **Sidequest 1.2** adds to 1.1: the resume and "Start from..." requests from a launcher, the pad hidden from the game on its screens, taking turns with the other plugins at the Memory Stick, and deleting the suspend slot. All of these were seen working on the PSP with this build or the one just before it.
 - **Sidequest 1.1** added the flash re-scan after a load, the battery guard and the 50% brightness to Sidequest 1.0, and ran on the PSP.
 - **Checkpoint 1.1** adds to 1.0: the pad hidden from the game on its screens, and taking turns with Sidequest at the Memory Stick. Suspend and quit from the quit screen was checked on the PSP with it: the game no longer opens a menu of its own on the way out.
@@ -103,7 +104,8 @@ At 5% or less without the charger, saves and loads are refused with "Battery too
 | Suspend and quit | Hand-over from Checkpoint to Sidequest, slot written, game closed |
 | POWER slide on a menu | The menu closes and the PSP sleeps instead of hanging |
 | Quit screen: L and R | L opens Sidequest's menu and R opens Emblem's viewer |
-| Sidequest 1.2 and Checkpoint 1.1 | The release builds run on the PSP |
+| Sidequest 1.2 and Checkpoint 1.1 | The release builds ran on the PSP |
+| A game's own save screen with every plugin on | Opens and saves, on a fresh start and after a resume (test builds of Sidequest 1.3 and Checkpoint 1.2; before them it opened blank and stuck) |
 | Buttons pressed on a Sidequest or Checkpoint screen | The game does not see them: no game menu opens before a save or on Suspend and quit (checked in Lunar: Silver Star Harmony and others), and the pad works again afterwards |
 | A slot chosen in the Shelf launcher's "Start from..." | That slot loads; "Start without loading" starts the game with no question |
 | Deleting the suspend slot | △ on the suspend row deletes it |

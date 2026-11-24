@@ -1,4 +1,4 @@
-# Sidequest 1.2 manual
+# Sidequest 1.3 manual
 
 **Save states for PSP games.** Sidequest freezes the whole system exactly as it is (the game, its memory, the screen) into a slot on the Memory Stick, and can put that moment back later. Every game gets its own six slots.
 

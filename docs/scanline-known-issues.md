@@ -1,6 +1,6 @@
-# Scanline: known issues and test status (v1.0)
+# Scanline: known issues and test status (v1.2)
 
-Everything here refers to the one console this plugin has run on: a **PSP-3000 with ARK-5**, games as ISO files on the Memory Stick, with MissyHUD installed alongside. Build in this release: Scanline 1.1, `built Nov 24 2026 10:17:03`. It has run on the PSP.
+Everything here refers to the one console this plugin has run on: a **PSP-3000 with ARK-5**, games as ISO files on the Memory Stick, with MissyHUD installed alongside. Build in this release: Scanline 1.2, `built Nov 24 2026 13:29:05`. The same code ran on the PSP in the test build of Nov 24 2026 13:03:38; the release build differs from it only in the version number.
 
 ## Disclosure
 

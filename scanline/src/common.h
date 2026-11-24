@@ -4,7 +4,7 @@
 #include <psptypes.h>
 #include "lines.h"
 
-#define SL_VERSION_STR  "1.1"
+#define SL_VERSION_STR  "1.2"
 #define SL_BUILD_STAMP  __DATE__ " " __TIME__
 
 #define SL_DIR          "ms0:/SCANLINE"

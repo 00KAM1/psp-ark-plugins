@@ -43,6 +43,19 @@ const char *hook_game(void) { return g_game; }
 
 int hook_busy(void) { return g_in_dialog || g_copying; }
 
+/* How much memory was free when the game opened the save or load screen. Only
+ * noted in the hook (the game's own thread); the plugin's thread writes it. */
+static volatile u32 g_mem[4];
+static volatile int g_mem_mode, g_mem_new;
+
+void hook_mem_report(void)
+{
+    if (!g_mem_new) return;
+    g_mem_new = 0;
+    sq_log("save screen opened (mode %d): memory free: kernel %d KB (largest piece %d KB), user %d KB (largest %d KB)",
+           g_mem_mode, (int)(g_mem[0] >> 10), (int)(g_mem[1] >> 10), (int)(g_mem[2] >> 10), (int)(g_mem[3] >> 10));
+}
+
 static int user_ptr(const void *p, u32 size)
 {
     u32 a = (u32)p;
@@ -102,6 +115,10 @@ static int hook_init(SceUtilitySavedataParam *p)
     u32 k1 = pspSdkSetK1(0);
     for (int t = 0; g_copying && t < 600; t++) sceKernelDelayThread(50 * 1000);  /* never write while we read */
     g_params = user_ptr(p, sizeof(*p)) ? p : NULL;
+    g_mem[0] = sceKernelPartitionTotalFreeMemSize(1); g_mem[1] = sceKernelPartitionMaxFreeMemSize(1);
+    g_mem[2] = sceKernelPartitionTotalFreeMemSize(2); g_mem[3] = sceKernelPartitionMaxFreeMemSize(2);
+    g_mem_mode = p && g_params ? (int)p->mode : -1;
+    g_mem_new = 1;
     g_in_dialog = 1;
     pspSdkSetK1(k1);
     return orig_init(p);

@@ -30,3 +30,13 @@ int sceIoDread(SceUID id, SceIoDirent *e){ int i=id-1000; struct dirent *de=read
 int sceIoDclose(SceUID id){ int i=id-1000; closedir(g_dirs[i]); g_dirs[i]=NULL; return 0; }
 int sceIoRmdir(const char *p){ char q[512]; map(p,q); return rmdir(q); }
 int sceIoGetstat(const char *p, SceIoStat *s){ char q[512]; map(p,q); struct stat st; if(stat(q,&st)<0) return -1; s->st_size=st.st_size; s->st_mode=S_ISDIR(st.st_mode)?FIO_S_IFDIR:0x2000; return 0; }
+
+/* kernel memory blocks: the vault takes one at a time for its work buffers.
+ * g_shim_no_memory = 1 refuses, so the small spare buffers are exercised too. */
+#include <stdlib.h>
+int g_shim_no_memory;
+static void *g_block;
+SceUID sceKernelAllocPartitionMemory(int part, const char *name, int type, unsigned int size, void *addr)
+{ if (g_block || g_shim_no_memory) return -1; g_block = malloc(size); return g_block ? 77 : -1; }
+void *sceKernelGetBlockHeadAddr(SceUID id) { return id == 77 ? g_block : 0; }
+int sceKernelFreePartitionMemory(SceUID id) { if (id != 77) return -1; free(g_block); g_block = 0; return 0; }

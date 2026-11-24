@@ -2,6 +2,14 @@
 
 Each plugin has its own version number. A plugin's number goes up only when its own files change, so an entry lists only the plugins you need to replace.
 
+## Sidequest 1.3, Checkpoint 1.2, Emblem 1.2, Scanline 1.2
+
+Replace all four `.prx` files. No settings file changes. Delete your Sidequest states first and take new ones, as with every update.
+
+- **Fixed: a game's own save or load screen could open blank and stay stuck.** With the releases of 2026-11-24 and several plugins installed, the PSP's kernel memory ran so low that the system's save screen could not load: the screen showed its title and nothing else, and the game could not be saved. On the test console these versions leave about 200 KB of kernel memory free, measured; the releases of 2026-11-24 left roughly 65 KB, worked out from what was freed.
+- **The plugins hold about 140 KB less memory while a game runs.** Work memory that used to be kept for the whole game is now taken for the moment it is needed and given back: Sidequest's slot picture (64 KB), Checkpoint's copy buffers (28 KB), the buffer Emblem reads a game file into (32 KB) and Scanline's buffers for `games.txt` (16 KB). If the system has none to lend at that moment, Sidequest saves the slot without a picture, Checkpoint copies with small spare buffers, Emblem stays idle for that game and says so in its log, and Scanline does not write the game's settings that time.
+- **Each log shows the free memory.** The start of every run has a `memory free: kernel ... KB` line, and `checkpoint.log` gets a `save screen opened` line with the same figures each time a game opens its save or load screen. Include them in a bug report.
+
 ## Sidequest 1.2
 
 Replace `sidequest.prx`. The settings file is unchanged; states saved with 1.1 still load.

@@ -35,3 +35,11 @@ int sceKernelDelayThread(unsigned int us)
     if (host_busy_for > 0 && --host_busy_for == 0) host_sidequest = 0;
     return 0;
 }
+
+/* kernel memory blocks: one at a time is all the plugin asks for */
+#include <stdlib.h>
+static void *g_block;
+SceUID sceKernelAllocPartitionMemory(int part, const char *name, int type, unsigned int size, void *addr)
+{ if (g_block) return -1; g_block = malloc(size); return g_block ? 77 : -1; }
+void *sceKernelGetBlockHeadAddr(SceUID id) { return id == 77 ? g_block : 0; }
+int sceKernelFreePartitionMemory(SceUID id) { if (id != 77) return -1; free(g_block); g_block = 0; return 0; }
