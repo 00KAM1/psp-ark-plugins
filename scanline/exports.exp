@@ -7,4 +7,9 @@ PSP_EXPORT_FUNC_HASH(module_stop)
 PSP_EXPORT_VAR_HASH(module_info)
 PSP_EXPORT_END
 
+# Sidequest asks this before it takes or loads a state: are we writing to the Memory Stick?
+PSP_EXPORT_START(ScanlineLib, 0, 0x0001)
+PSP_EXPORT_FUNC_NID(scanlineCardWriting, 0x5C4B5005)
+PSP_EXPORT_END
+
 PSP_END_EXPORTS

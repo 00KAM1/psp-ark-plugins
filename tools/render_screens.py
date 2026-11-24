@@ -124,7 +124,7 @@ def sq_menu(bg, title, slots, sel, own=True, page=None, need=None, status=None, 
     """slots: six entries, each None or "MM-DD HH:MM". pic: (game key, seed) of the selected slot."""
     im = bg.copy()
     rect(im, BX, BY, BW, BH, C_BG); rect(im, BX, BY, BW, 12, C_HI)
-    text(im, BX + 4, BY + 2, "Sidequest 1.1", C_WHITE, C_HI)
+    text(im, BX + 4, BY + 2, "Sidequest 1.2", C_WHITE, C_HI)
     if need and own:
         s = "needs ~%d of %d MB" % need; text(im, BX + BW - 4 - 8 * len(s), BY + 2, s, C_WHITE, C_HI)
     text(im, BX + 4, BY + 18, title[:40], C_WHITE if own else C_WARN, C_BG)
@@ -142,10 +142,9 @@ def sq_menu(bg, title, slots, sel, own=True, page=None, need=None, status=None, 
     else:
         rect(im, TH_X, TH_Y, 240, 136, C_DIM); text(im, TH_X + 120 - 20, TH_Y + 64, "Empty", C_GREY, C_DIM)
     fy = BY + BH - 34
-    if not own:        keys = "[] load   O close" if sel == 0 else "[] load   /\\ delete   O close"
-    elif sel == 0:     keys = "[] load   O close"
-    elif slots[sel]:   keys = "X save   [] load   /\\ delete   O close"
-    else:              keys = "X save   O close"
+    full, can_save = bool(slots[sel]), own and sel != 0
+    if can_save:       keys = "X save   [] load   /\\ delete   O close" if full else "X save   O close"
+    else:              keys = "[] load   /\\ delete   O close" if full else "O close"
     text(im, BX + 4, fy, keys, C_WHITE, C_BG)
     if status:      text(im, BX + 4, fy + 22, status[0][:52], status[1], C_BG)
     elif not own:   text(im, BX + 4, fy + 22, "Another game: loading it switches games", C_GREY, C_BG)

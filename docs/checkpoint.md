@@ -1,4 +1,4 @@
-# Checkpoint 1.0 manual
+# Checkpoint 1.1 manual
 
 **A history of your game saves.** Every time a PSP game saves, Checkpoint keeps a dated copy. If a save gets corrupted, you regret a choice, or you overwrote the wrong file, open the menu and put an earlier version back.
 

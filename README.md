@@ -1,17 +1,22 @@
 # PSP ARK Plugins
 
-Four kernel plugins for PSP games on ARK-5 custom firmware: **Emblem**, **Sidequest**, **Checkpoint** and **Scanline**. They are independent of each other, so you can install any of them, and they are made to run side by side.
+Kernel plugins for the PSP on ARK-5 custom firmware: **Emblem**, **Sidequest**, **Checkpoint**, **Scanline** and **Runtime**.
+
+Emblem, Sidequest, Checkpoint and Scanline each work on their own. They are independent of each other, so you can install any of them, and they are made to run side by side. **Runtime is the exception:** it is built for the [Shelf launcher](https://github.com/00KAM1/psp-shelf-launcher) and shows nothing without it.
+
+**Shelf** is a home screen and game launcher that brings these plugins together: it shows each game's save states, journey and achievements in one place. It has its own repository, [psp-shelf-launcher](https://github.com/00KAM1/psp-shelf-launcher). The plugins do not need Shelf, and Shelf runs without them.
 
 | Plugin | Version | What it does | Opens with |
 |---|---|---|---|
-| [**Emblem**](#emblem) | 1.0 | Achievements, earned and kept on the Memory Stick. One text file per game. | Hold **L + R + LEFT**, ½ s |
-| [**Sidequest**](#sidequest) | 1.1 | Save states. Freezes the whole system and brings it back later: one suspend slot and five state slots for every game. | Hold **SELECT** alone, 1 s |
-| [**Checkpoint**](#checkpoint) | 1.0 | A dated history of your game saves, a journey log that writes itself, and a PS-button quit screen that shows when you last saved. | **L + R + SELECT**, PS button |
-| [**Scanline**](#scanline) | 1.0 | CRT-style scanlines over any game, with settings kept per game. | Hold **L + R** with a button, ½ s |
+| [**Emblem**](#emblem) | 1.1 | Achievements, earned and kept on the Memory Stick. One text file per game. | Hold **L + R + LEFT**, ½ s |
+| [**Sidequest**](#sidequest) | 1.2 | Save states. Freezes the whole system and brings it back later: one suspend slot and five state slots for every game. | Hold **SELECT** alone, 1 s |
+| [**Checkpoint**](#checkpoint) | 1.1 | A dated history of your game saves, a journey log that writes itself, and a PS-button quit screen that shows when you last saved. | **L + R + SELECT**, PS button |
+| [**Scanline**](#scanline) | 1.1 | CRT-style scanlines over any game, with settings kept per game. | Hold **L + R** with a button, ½ s |
+| [**Runtime**](#runtime) | 1.0 | Counts time on and battery use for the [Shelf launcher](https://github.com/00KAM1/psp-shelf-launcher). **Needs Shelf: it shows nothing by itself.** | No buttons |
 
-Each plugin has its own version number, which goes up only when that plugin's files change. All four come in one release file, and the [changelog](CHANGELOG.md) says which ones to replace when you update.
+Each plugin has its own version number, which goes up only when that plugin's files change. All of them come in one release file, and the [changelog](CHANGELOG.md) says which ones to replace when you update.
 
-> **Disclosure.** These plugins were written by Claude, Anthropic’s AI model, from my ideas and my testing on a PSP-3000. I’m not a kernel programmer, and nothing has been tested beyond my own console. Please read the known issues ([Emblem](docs/emblem-known-issues.md), [Sidequest + Checkpoint](docs/sidequest-checkpoint-known-issues.md), [Scanline](docs/scanline-known-issues.md)) before relying on them.
+> **Disclosure.** These plugins were written by Claude, Anthropic’s AI model, from my ideas and my testing on a PSP-3000. I’m not a kernel programmer, and nothing has been tested beyond my own console. Please read the known issues ([Emblem](docs/emblem-known-issues.md), [Sidequest + Checkpoint](docs/sidequest-checkpoint-known-issues.md), [Scanline](docs/scanline-known-issues.md), [Runtime](docs/runtime.md)) before relying on them.
 
 ## Emblem
 
@@ -46,6 +51,28 @@ Save states for PSP games. Sidequest freezes the whole system exactly as it is a
 - L / R looks at other games' slots, and loading one switches games.
 - Starting a game that has a slot offers to continue from the newest one.
 - The PSP sleeps for a few seconds for each save and load, and wakes itself.
+- With the [Shelf launcher](https://github.com/00KAM1/psp-shelf-launcher), a game started from Shelf's Home tab goes straight back to its newest slot without the question.
+
+> [!WARNING]
+> **Due to limitations in the way save states are saved and restored, a state is only safe to load on the setup it was made on. Delete your old states before you install or update anything.**
+>
+> A Sidequest state is a copy of the whole running system at that moment: the game, the launcher, and every plugin in the version that was installed then. Loading it brings all of that back. This is the same whether you load from Sidequest's menu or resume a game from the [Shelf launcher](https://github.com/00KAM1/psp-shelf-launcher)'s Home tab.
+>
+> A state made **before** you installed or updated Shelf, Sidequest, any other plugin, or ARK no longer matches what is on the Memory Stick. Loading one can:
+>
+> - end in a **black screen** instead of the launcher when you quit the game;
+> - run the **old versions** of the plugins, or run without a plugin you have added since, until the game is restarted;
+> - leave **files on the Memory Stick damaged**. On my PSP, Shelf's saved game list and logs were damaged after loading such a state.
+>
+> **Every time you install or update:**
+>
+> 1. Save in each game the normal way, from the game's own save menu.
+> 2. Delete every state. △ in Sidequest's menu deletes the selected slot, the suspend included, and L / R there shows your other games' slots. With a computer, deleting the game folders inside `ms0:/SIDEQUEST/` (keeping `config.txt`) does the same in one go.
+> 3. Install the new files, then take new states.
+>
+> If a load ends in a black screen, hold POWER up for ten seconds to switch off. More in the [manual](docs/sidequest.md#things-to-know).
+
+**If that risk is more than you want, leave Sidequest out.** Nothing else here needs it. Emblem, Checkpoint, Scanline and Runtime work exactly the same without it, and so does the [Shelf launcher](https://github.com/00KAM1/psp-shelf-launcher). To leave it out, do not copy `sidequest.prx` or its line in `PLUGINS.TXT`. What you give up is save states, "Suspend and quit" on Checkpoint's quit screen (its Sidequest buttons are simply not shown), and resuming a game from Shelf's Home tab. Your games' own saves, and Checkpoint's copies of them, are not save states and are not affected by any of this.
 
 **Requirements:** PSP-3000 on firmware **6.61** (the PSP-2000 has the same memory and may work but is untested; not the 1000, Go or Street). Sidequest checks the PSP's flash driver and refuses to save if it is not the one it knows. ARK-5 with **Extra RAM** set to `Off`. Games started from an ISO/CSO or a PSN `EBOOT.PBP`; real UMD discs are refused. A slot takes about 5MB to 27MB of Memory Stick space.
 
@@ -90,11 +117,23 @@ This is a new plugin written from scratch. It is not based on, and shares no cod
 
 **Documentation:** [Manual](docs/scanline.md) · [Known issues and test status](docs/scanline-known-issues.md) · [How it works](docs/scanline-how-it-works.md)
 
+## Runtime
+
+A companion to the [Shelf launcher](https://github.com/00KAM1/psp-shelf-launcher). **It does nothing you can see on its own:** it has no screen, buttons or menu. It keeps count of how long the PSP has been on, and of the battery used, in every program, and Shelf's PS-button menu shows the numbers. Install it only if you use Shelf.
+
+- Counts in the XMB, in games and in the launcher, with sleep counted apart.
+- Writes its record into its own folder, `ms0:/RUNTIME/`, which Shelf reads.
+- It has run on a PSP-3000 with Shelf. The individual checks are listed in its notes.
+
+**Requirements:** PSP-3000 on ARK-5, and Shelf to show the numbers.
+
+**Documentation:** [Notes, install and test status](docs/runtime.md)
+
 *The pictures on this page are photos and a video of a PSP-3000 screen. The two Scanline pictures are a photo and a video frame rebuilt at the PSP's own pixel size, with the lines drawn by the plugin's code.*
 
 ## Install
 
-Download the newest `psp-ark-plugins` zip from the [Releases](../../releases) page and unpack it. Install all four, or only the ones you want.
+Download the newest `psp-ark-plugins` zip from the [Releases](../../releases) page and unpack it. Install all of them, or only the ones you want. Runtime is only for use with the [Shelf launcher](https://github.com/00KAM1/psp-shelf-launcher).
 
 1. Copy the `.prx` files you want from `SEPLUGINS` to `ms0:/SEPLUGINS/`.
 2. Copy the matching folders (`SIDEQUEST`, `CHECKPOINT`, `SCANLINE`, `EMBLEM`) to the root of the Memory Stick. `EMBLEM` holds the game files, so Emblem needs it. The other three hold settings and are made by the plugins if missing.
@@ -104,10 +143,12 @@ Download the newest `psp-ark-plugins` zip from the [Releases](../../releases) pa
    game, ms0:/SEPLUGINS/checkpoint.prx, on
    game, ms0:/SEPLUGINS/scanline.prx, on
    game, ms0:/SEPLUGINS/emblem.prx, on
+   always, ms0:/SEPLUGINS/runtime.prx, on
    ```
+   Runtime's line says `always` because it also has to run outside games.
 4. Restart the PSP.
 
-**Updating:** copy over the `.prx` and the `config.txt` of the plugins whose version went up; the [changelog](CHANGELOG.md) lists them. For Sidequest 1.1 that is `sidequest.prx` and `SIDEQUEST/config.txt`, and states saved with 1.0 have to be saved again.
+**Updating:** copy over the `.prx` and the `config.txt` of the plugins whose version went up; the [changelog](CHANGELOG.md) lists them. For Sidequest 1.2 that is `sidequest.prx` only; states saved with 1.1 still load. Coming from 1.0, also replace `SIDEQUEST/config.txt`, and save your states again.
 
 ## Buttons at a glance
 
@@ -156,22 +197,25 @@ sidequest/    Sidequest source and tests
 checkpoint/   Checkpoint source and tests
 scanline/     Scanline source and tests
 emblem/       Emblem source and tests, and the game files in emblem/games/
+runtime/      Runtime source and tests (companion to the Shelf launcher)
 docs/         manuals, known issues and technical notes for each plugin; pictures in docs/images/
 tools/        scripts that draw the pictures, and the Japanese font generator
 ```
 
-The [changelog](CHANGELOG.md) covers all four.
+The [changelog](CHANGELOG.md) covers all of them. The Shelf launcher has its own repository: [psp-shelf-launcher](https://github.com/00KAM1/psp-shelf-launcher).
 
 ## Building from source
 
 Needs the [pspdev toolchain](https://github.com/pspdev/pspdev/releases/tag/latest).
 
 ```
-export PSPDEV=/path/to/pspdev PATH=$PSPDEV/bin:$PATH
+export PSPDEV=/path/to/pspdev
+export PATH=$PSPDEV/bin:$PATH
 cd sidequest && make && sh tests/run_tests.sh
 cd ../checkpoint && make && sh tests/run_tests.sh
 cd ../scanline && make && sh tests/run_tests.sh && python3 tests/test_sim.py scanline.elf
 cd ../emblem && make && bash tests/run_tests.sh
+cd ../runtime && make && sh tests/run_tests.sh
 ```
 
 The tests run on a PC and need a C compiler. The emulator tests of Sidequest, Scanline and Emblem also need Python with `pip install unicorn pyelftools`; Emblem's is described in [emblem/README.md](emblem/README.md).
@@ -181,3 +225,16 @@ The tests run on a PC and need a C compiler. The emulator tests of Sidequest, Sc
 MIT. See [LICENSE](LICENSE).
 
 Checkpoint includes glyphs from Fusion Pixel Font (SIL Open Font License 1.1), whose Japanese glyphs are the Misaki font by Num Kadoma. See [LICENSE-FONT.txt](LICENSE-FONT.txt).
+
+## Thanks
+
+These plugins exist because other people shared their work first.
+
+| Thanks to | For |
+|---|---|
+| The **ARK-5** and **ARK-4** teams ([PSP-Arkfive](https://github.com/PSP-Arkfive), [PSP-Archive/ARK-4](https://github.com/PSP-Archive/ARK-4)) | The custom firmware these plugins run on. Its plugin loader, its libraries and its documentation and source showed how a plugin should behave. |
+| **pspdev** ([github.com/pspdev](https://github.com/pspdev)) | The toolchain and the PSPSDK that every plugin here is built with, and the 8x8 debug font the menus are drawn in. |
+| **RetroAchievements** ([retroachievements.org](https://retroachievements.org)) | The achievement titles and points, and the public memory notes that Emblem's game files were written from. Emblem is not connected to RetroAchievements. |
+| **Fusion Pixel Font** and the **Misaki** font by Num Kadoma | The Japanese glyphs in Checkpoint. |
+
+The launcher that goes with these plugins is [psp-shelf-launcher](https://github.com/00KAM1/psp-shelf-launcher).

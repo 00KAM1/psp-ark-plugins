@@ -4,7 +4,7 @@
 #include <psptypes.h>
 #include "lines.h"
 
-#define SL_VERSION_STR  "1.0"
+#define SL_VERSION_STR  "1.1"
 #define SL_BUILD_STAMP  __DATE__ " " __TIME__
 
 #define SL_DIR          "ms0:/SCANLINE"
@@ -57,6 +57,10 @@ typedef struct {
 } SlConfig;
 
 void sl_log(const char *fmt, ...);
+int  sl_card_busy(void);                     /* Sidequest: 0 write, 1 wait, 2 do not write */
+int  sl_card_begin(void);                    /* before a write: 0 = go ahead, then sl_card_end() */
+void sl_card_end(void);
+int  sl_card_wait(void);                     /* the same, waiting while a state is taken or loaded */
 int  sl_snprintf(char *buf, int size, const char *fmt, ...);
 int  config_load(SlConfig *c);      /* 1 = read from the file, 0 = defaults */
 int  config_save(const SlConfig *c);

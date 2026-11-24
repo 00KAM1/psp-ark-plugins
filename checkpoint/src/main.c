@@ -16,10 +16,13 @@ int ui_thread(SceSize args, void *argp);
 int module_start(SceSize args, void *argp)
 {
     SceIoStat st;
-    sceIoMkdir(BT_DIR, 0777);
-    if (sceIoGetstat(BT_LOG_PATH, &st) >= 0 && st.st_size > 8 * 1024) {
-        sceIoRemove(BT_DIR "/checkpoint.old");
-        if (sceIoRename(BT_LOG_PATH, BT_DIR "/checkpoint.old") < 0) sceIoRemove(BT_LOG_PATH);
+    if (bt_card_begin() == 0) {
+        sceIoMkdir(BT_DIR, 0777);
+        if (sceIoGetstat(BT_LOG_PATH, &st) >= 0 && st.st_size > 8 * 1024) {
+            sceIoRemove(BT_DIR "/checkpoint.old");
+            if (sceIoRename(BT_LOG_PATH, BT_DIR "/checkpoint.old") < 0) sceIoRemove(BT_LOG_PATH);
+        }
+        bt_card_end();
     }
     config_load();
 

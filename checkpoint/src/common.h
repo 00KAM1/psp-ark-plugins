@@ -7,7 +7,7 @@
 #define BT_COMMON_H
 #include <psptypes.h>
 
-#define BT_VERSION_STR  "1.0"
+#define BT_VERSION_STR  "1.1"
 #define BT_BUILD_STAMP   __DATE__ " " __TIME__
 #define BT_DIR          "ms0:/CHECKPOINT"
 #define BT_LOG_PATH     BT_DIR "/checkpoint.log"
@@ -44,6 +44,10 @@ typedef struct {
 int  sq_snprintf(char *buf, int size, const char *fmt, ...);
 void sq_strcpy(char *dst, int size, const char *src);
 void sq_log(const char *fmt, ...);
+int  bt_card_busy(void);                     /* Sidequest: 0 write, 1 wait, 2 do not write */
+int  bt_card_begin(void);                    /* before a write: 0 = go ahead, then bt_card_end() */
+void bt_card_end(void);
+int  bt_card_wait(void);                     /* the same, waiting while a state is taken or loaded */
 void config_load(void);
 
 /* vault.c: file work only, no kernel calls besides sceIo*, tested on a PC */

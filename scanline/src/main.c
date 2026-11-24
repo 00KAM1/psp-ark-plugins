@@ -192,11 +192,14 @@ static int main_thread(SceSize args, void *argp)
 int module_start(SceSize args, void *argp)
 {
     SceIoStat st;
-    sceIoMkdir(SL_DIR, 0777);
-    /* Keep the log short: past 3KB the old one becomes scanline.old. */
-    if (sceIoGetstat(SL_LOG_PATH, &st) >= 0 && st.st_size > 3 * 1024) {
-        sceIoRemove(SL_DIR "/scanline.old");
-        if (sceIoRename(SL_LOG_PATH, SL_DIR "/scanline.old") < 0) sceIoRemove(SL_LOG_PATH);
+    if (sl_card_begin() == 0) {
+        sceIoMkdir(SL_DIR, 0777);
+        /* Keep the log short: past 3KB the old one becomes scanline.old. */
+        if (sceIoGetstat(SL_LOG_PATH, &st) >= 0 && st.st_size > 3 * 1024) {
+            sceIoRemove(SL_DIR "/scanline.old");
+            if (sceIoRename(SL_LOG_PATH, SL_DIR "/scanline.old") < 0) sceIoRemove(SL_LOG_PATH);
+        }
+        sl_card_end();
     }
     config_defaults(&g_cfg);
     hook_install();                             /* idle until the config has been read */

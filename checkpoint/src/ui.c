@@ -186,9 +186,41 @@ static void power_done(void)
     sq_log("back after the POWER slide");
 }
 
+/*
+ * The pad, hidden from the game. While one of our screens is open the game is
+ * frozen, but the system goes on recording the pad for it, and the game reads
+ * that record when it runs again: the X or TRIANGLE pressed on our screen then
+ * opens a menu in the game, and that menu ends up in the picture of a state.
+ * The controller driver can report every button as "not pressed" to user
+ * programs while kernel code (these plugins) still reads the real pad. It is
+ * switched on when a screen opens and off when the game is handed back, after
+ * every button has been let go. It is one switch for the whole system and it is
+ * kept in the driver's memory, so a loaded state wakes up with it on: every way
+ * out of a screen must switch it off.
+ * on: 1 hide, 0 show, -1 show and do not hide again (see wait_press).
+ */
+static int g_pad_hidden, g_pad_off;
+static void pad_hide(int on)
+{
+    static u32 (*intercept)(u32 buttons, u32 mode);
+    static int looked;
+    if (!looked) {
+        looked = 1;
+        intercept = (void *)sctrlHENFindFunction("sceController_Service", "sceCtrl_driver", 0x7CA723DC);
+        sq_log("ui: hiding the pad from the game: %s", intercept ? "found" : "NOT found");
+    }
+    if (!intercept) return;
+    if (on < 0) g_pad_off = 1;
+    if (on > 0 && g_pad_off) return;
+    if (on == 0) for (int t = 0; t < 100 && read_buttons(); t++) sceKernelDelayThread(20 * 1000);   /* up to 2 s for the buttons to be let go */
+    intercept(0x0000FFFF, on > 0 ? 1 : 0);
+    g_pad_hidden = on > 0;
+}
+
 static u32 wait_press(void)
 {
     u32 prev = read_buttons();
+    int idle = 0;
     for (;;) {
         if (power_slid()) return PSP_CTRL_CIRCLE;       /* "close": every screen backs out */
         sceKernelDelayThread(16 * 1000);
@@ -196,6 +228,10 @@ static u32 wait_press(void)
         u32 edge = now & ~prev;
         prev = now;
         if (edge) return edge;
+        /* Half a minute on a screen without one button seen, with the pad hidden: in case
+         * the hiding reaches us too on some system, it is switched off for good, so a
+         * screen can never be left without a way out. */
+        if (g_pad_hidden && ++idle == 1800) { pad_hide(-1); sq_log("ui: no button for 30 s with the pad hidden: hiding switched off"); }
     }
 }
 
@@ -586,7 +622,8 @@ static void do_restore(void)
         return;
     }
     message("Restoring...", NULL, C_WHITE);
-    r = vault_restore(g_saves[g_sel_save], stamp);
+    if (bt_card_begin() < 0) r = BT_E_COPY;
+    else { r = vault_restore(g_saves[g_sel_save], stamp); bt_card_end(); }
     sq_log("restore %s %s: %d", g_saves[g_sel_save], stamp, r);
     if (r == BT_OK) set_status(C_OK, "Restored. Now load it from the game's load screen.");
     else            set_status(C_ERR, r == BT_E_COPY ? "Restore failed. The current save was not changed." : why(r));
@@ -596,7 +633,8 @@ static void do_pin(void)
 {
     if (!g_nver) return;
     int on = !g_ver[g_sel_ver].pinned;
-    int r = vault_set_pin(g_saves[g_sel_save], g_ver[g_sel_ver].stamp, on);
+    int r = BT_E_COPY;
+    if (bt_card_begin() == 0) { r = vault_set_pin(g_saves[g_sel_save], g_ver[g_sel_ver].stamp, on); bt_card_end(); }
     sq_log("pin %s %s -> %d: %d", g_saves[g_sel_save], g_ver[g_sel_ver].stamp, on, r);
     if (r == BT_OK)          set_status(C_OK, on ? "Pinned: this version is kept until you delete it" : "Unpinned");
     else if (r == BT_E_PINS) set_status(C_WARN, "10 versions of this save are pinned already");
@@ -607,7 +645,9 @@ static void do_delete(void)
 {
     if (!g_nver) return;
     if (!confirm(g_ver[g_sel_ver].pinned ? "Delete this PINNED version?" : "Delete this version?")) { set_status(C_GREY, "Cancelled"); return; }
+    if (bt_card_begin() < 0) { set_status(C_GREY, "Cancelled"); return; }
     vault_delete_version(g_saves[g_sel_save], g_ver[g_sel_ver].stamp);
+    bt_card_end();
     set_status(C_OK, "Deleted");
 }
 
@@ -658,12 +698,21 @@ static void menu_body(void)
     wait_release();
 }
 
+/* 1 when Sidequest is running and is one that shows the pad again itself. */
+static int sidequest_takes_pad(void)
+{
+    int (*takes)(void) = (void *)sctrlHENFindFunction("Sidequest", "SidequestLib", 0x5C4B5006);
+    return takes && takes();
+}
+
 static void run_menu(void)
 {
     home_block(1);
     freeze_game();
+    pad_hide(1);
     power_hold();
     menu_body();
+    pad_hide(0);
     thaw_game();
     home_block(0);
     power_done();
@@ -720,6 +769,7 @@ static void quit_screen(void)
     u32 color;
 
     freeze_game();
+    pad_hide(1);
     power_hold();
     if (!g_disc[0] && vault_name_ok(hook_game())) sq_strcpy(g_disc, sizeof(g_disc), hook_game());
     if (blit_setup() >= 0) {
@@ -815,6 +865,7 @@ static void quit_screen(void)
             int side = (b & PSP_CTRL_LTRIGGER) && sq;
             sq_log("quit: %s opened from the quit screen", side ? "Sidequest's menu" : "Emblem's viewer");
             wait_release();
+            if (!(side && sidequest_takes_pad())) pad_hide(0);    /* Sidequest keeps it hidden until its own screen closes */
             thaw_game();
             power_release();                            /* that plugin holds its own power lock */
             sceKernelSetEventFlag(side ? sidequest : emblem, side ? 2 : 1);
@@ -826,6 +877,7 @@ static void quit_screen(void)
             sq_log("quit: suspend and quit, handed to Sidequest");
             wait_release();
             hook_play_flush();
+            if (!sidequest_takes_pad()) pad_hide(0);    /* hidden until Sidequest has taken the state: the game runs for a moment first */
             thaw_game();
             power_release();                            /* Sidequest's own sleep must not wait for our lock */
             sceKernelSetEventFlag(sidequest, 1);
@@ -835,6 +887,7 @@ static void quit_screen(void)
             sq_log("quit: confirmed (%s)", head);
             hook_play_flush();
             wait_release();
+            pad_hide(0);
             thaw_game();                                /* the game must run to act on the request */
             power_release();
             g_invoke_exit();                            /* exactly what the system's screen does on "Yes" */
@@ -846,6 +899,7 @@ static void quit_screen(void)
         }
     }
     if (!g_slide) wait_release();
+    pad_hide(0);
     thaw_game();
     power_done();
 }

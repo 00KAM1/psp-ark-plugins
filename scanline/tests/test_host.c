@@ -1,6 +1,7 @@
 /* PC tests for Scanline's pixel work, its guard against darkening a frame
  * twice, and the config file. Built with AddressSanitizer by run_tests.sh. */
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include "../src/lines.h"
@@ -472,6 +473,49 @@ int main(void)
         CHECK(config_load(&c) == 1 && sl_level_from_percent(c.strength) == 0 && c.ge_wait == 1 &&
               !strcmp(sl_level_text[0], "12.5") && !strcmp(sl_level_text[2], "37.5") && !strcmp(sl_level_text[4], "62.5"),
               "strength = 12.5 is read as the first step; the label texts are the exact figures");
+        system("rm -rf ms0");
+    }
+
+    {   /* the handshake with Sidequest over the Memory Stick */
+        extern int host_sidequest, host_busy_for, host_delays;
+        int scanlineCardWriting(void);
+        SlConfig c;
+        char log[1024];
+        FILE *f;
+        system("rm -rf ms0 && mkdir -p ms0/SCANLINE");
+        config_defaults(&c);
+        host_sidequest = -1;
+        CHECK(config_save(&c) == 0 && !scanlineCardWriting(), "no Sidequest: the settings are written as before, and the writing mark is down again");
+        host_sidequest = 0;
+        CHECK(config_save(&c) == 0 && !scanlineCardWriting(), "Sidequest idle: the settings are written");
+        system("rm -f ms0/SCANLINE/config.txt ms0/SCANLINE/scanline.log");
+        host_sidequest = 1; host_busy_for = 0; host_delays = 0;
+        int r = config_save(&c);
+        CHECK(r == -5 && access("ms0/SCANLINE/config.txt", F_OK) != 0 && access("ms0/SCANLINE/config.tmp", F_OK) != 0 &&
+              host_delays == 150 && !scanlineCardWriting(),
+              "Sidequest at the stick for good: after the wait nothing was written, not even the temporary file");
+        sl_log("dropped");
+        CHECK(access("ms0/SCANLINE/scanline.log", F_OK) != 0, "a log line is dropped, not written, while Sidequest is at the stick");
+        host_sidequest = 1; host_busy_for = 7; host_delays = 0;
+        CHECK(config_save(&c) == 0 && host_delays == 7 && access("ms0/SCANLINE/config.txt", F_OK) == 0 && !scanlineCardWriting(),
+              "Sidequest busy for a moment: the write waits for it and is then done");
+        sl_log("after");
+        memset(log, 0, sizeof(log));
+        f = fopen("ms0/SCANLINE/scanline.log", "r");
+        if (f) { fread(log, 1, sizeof(log) - 1, f); fclose(f); }
+        CHECK(strstr(log, "after\r\n") && strstr(log, "card guard: 2 write(s) put off") && !strstr(log, "dropped"),
+              "afterwards the log says once how many writes were put off");
+        sl_log("again");
+        memset(log, 0, sizeof(log));
+        f = fopen("ms0/SCANLINE/scanline.log", "r");
+        if (f) { fread(log, 1, sizeof(log) - 1, f); fclose(f); }
+        CHECK(strstr(log, "again\r\n") && strstr(log, "card guard") && !strstr(strstr(log, "card guard") + 1, "card guard"),
+              "and does not say it again");
+        system("rm -f ms0/SCANLINE/config.txt");
+        host_sidequest = 2; host_delays = 0;
+        CHECK(config_save(&c) < 0 && host_delays == 0 && access("ms0/SCANLINE/config.txt", F_OK) != 0,
+              "stick not refreshed after a load: no write and no waiting");
+        host_sidequest = -1;
         system("rm -rf ms0");
     }
 

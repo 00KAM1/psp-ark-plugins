@@ -160,9 +160,41 @@ static void wait_release(void)
     while (read_buttons()) sceKernelDelayThread(16 * 1000);
 }
 
+/*
+ * The pad, hidden from the game. While one of our screens is open the game is
+ * frozen, but the system goes on recording the pad for it, and the game reads
+ * that record when it runs again: the X or TRIANGLE pressed on our screen then
+ * opens a menu in the game, and that menu ends up in the picture of a state.
+ * The controller driver can report every button as "not pressed" to user
+ * programs while kernel code (these plugins) still reads the real pad. It is
+ * switched on when a screen opens and off when the game is handed back, after
+ * every button has been let go. It is one switch for the whole system and it is
+ * kept in the driver's memory, so a loaded state wakes up with it on: every way
+ * out of a screen must switch it off.
+ * on: 1 hide, 0 show, -1 show and do not hide again (see wait_press).
+ */
+static int g_pad_hidden, g_pad_off;
+static void pad_hide(int on)
+{
+    static u32 (*intercept)(u32 buttons, u32 mode);
+    static int looked;
+    if (!looked) {
+        looked = 1;
+        intercept = (void *)sctrlHENFindFunction("sceController_Service", "sceCtrl_driver", 0x7CA723DC);
+        sq_log("ui: hiding the pad from the game: %s", intercept ? "found" : "NOT found");
+    }
+    if (!intercept) return;
+    if (on < 0) g_pad_off = 1;
+    if (on > 0 && g_pad_off) return;
+    if (on == 0) for (int t = 0; t < 100 && read_buttons(); t++) sceKernelDelayThread(20 * 1000);   /* up to 2 s for the buttons to be let go */
+    intercept(0x0000FFFF, on > 0 ? 1 : 0);
+    g_pad_hidden = on > 0;
+}
+
 static u32 wait_press(void)
 {
     u32 prev = read_buttons();
+    int idle = 0;
     for (;;) {
         if (power_slid()) return PSP_CTRL_CIRCLE;       /* "close": every screen backs out */
         sceKernelDelayThread(16 * 1000);
@@ -170,6 +202,10 @@ static u32 wait_press(void)
         u32 edge = now & ~prev;
         prev = now;
         if (edge) return edge;
+        /* Half a minute on a screen without one button seen, with the pad hidden: in case
+         * the hiding reaches us too on some system, it is switched off for good, so a
+         * screen can never be left without a way out. */
+        if (g_pad_hidden && ++idle == 1800) { pad_hide(-1); sq_log("ui: no button for 30 s with the pad hidden: hiding switched off"); }
     }
 }
 
@@ -393,10 +429,11 @@ static void draw_menu(void)
 
     int fy = BY + BH - 34;
     const char *keys;
-    if (!own_page())               keys = g_sel == 0 ? "[] load   O close" : "[] load   /\\ delete   O close";
-    else if (g_sel == 0)           keys = "[] load   O close";
-    else if (g_view[g_sel].valid)  keys = "X save   [] load   /\\ delete   O close";
-    else                           keys = "X save   O close";
+    /* a slot that holds something can be loaded and deleted, the suspend included; X saves
+     * into the states of the game that is running (the suspend is written by Suspend and Quit) */
+    int full = g_view[g_sel].valid, can_save = own_page() && g_sel != 0;
+    if (can_save)  keys = full ? "X save   [] load   /\\ delete   O close" : "X save   O close";
+    else           keys = full ? "[] load   /\\ delete   O close" : "O close";
     blit_text_uc(BX + 4, fy, keys, C_WHITE, C_BG);
     if (!g_cfg.enable_load)
         blit_text_uc(BX + 4, fy + 10, "Load is off (enable_load=0)", C_GREY, C_BG);
@@ -464,6 +501,55 @@ static void after_load_settings(void)
 
 /* ---- Memory Stick safety ------------------------------------------------- */
 static SceUID g_sentinel = -1;
+
+/*
+ * Other plugins ask this before they write (found with sctrlHENFindFunction,
+ * module "Sidequest", library "SidequestLib").
+ *   0  write as usual
+ *   1  a state is being taken or loaded: wait
+ *   2  a state was loaded and the stick could not be refreshed: do not write
+ *      again until the next program start
+ * It is set before the snapshot is taken, so every state holds it set: a
+ * loaded state wakes up saying 1 and nothing has to raise it afterwards. It is
+ * cleared only once the stick is known to be fresh.
+ */
+static volatile int g_card_busy;
+int sidequestCardBusy(void) { return g_card_busy; }
+
+/*
+ * The other half of the handshake: each of the other plugins says when it is
+ * in the middle of a write. A state must not be taken then (it would hold the
+ * half-done write, to be finished after a load on a changed stick), and a
+ * load must not cut one off. Called with g_card_busy already set, so no new
+ * write starts while we wait. 0: nobody is writing. Otherwise: the plugin (1..)
+ * that was still writing after ten seconds.
+ */
+static const struct { const char *mod, *lib; u32 nid; } g_writers[] = {
+    { "Runtime",    "RuntimeLib",    0x5C4B5002 },
+    { "Checkpoint", "CheckpointLib", 0x5C4B5003 },
+    { "Emblem",     "EmblemLib",     0x5C4B5004 },
+    { "Scanline",   "ScanlineLib",   0x5C4B5005 },
+};
+#define STILL_WRITING "A plugin is still writing: try again shortly"
+
+static int writers_wait(const char *what)
+{
+    int who = 0;
+    for (int t = 0; t <= 100; t++) {
+        who = 0;
+        for (int i = 0; i < (int)(sizeof(g_writers) / sizeof(g_writers[0])); i++) {
+            int (*writing)(void) = (void *)sctrlHENFindFunction(g_writers[i].mod, g_writers[i].lib, g_writers[i].nid);
+            if (writing && writing()) { who = i + 1; break; }
+        }
+        if (!who) {
+            if (t) sq_log("%s: waited %d ms for the other plugins to finish writing", what, t * 100);
+            return 0;
+        }
+        sceKernelDelayThread(100 * 1000);
+    }
+    sq_log("%s: refused, %s was still writing after 10 s", what, g_writers[who - 1].mod);
+    return who;
+}
 
 static void sentinel_open(void)
 {
@@ -603,6 +689,13 @@ static int do_save(int k)
     sq_log("save: X pressed, slot %d", k + 1);
     if (staging_alloc(err, sizeof(err)) < 0) { set_status(C_ERR, err); return 0; }
     sq_log("save: staging reserved");
+    g_card_busy = 1;                            /* from here the other plugins start no write */
+    if (writers_wait("save")) {                 /* and one that is in the middle of one is waited for */
+        g_card_busy = 0;
+        staging_free();
+        set_status(C_ERR, STILL_WRITING);
+        return 0;
+    }
 
     if (engine_instant())
         draw_message("Taking snapshot...", "The screen may go dark for a few seconds.", C_WARN);
@@ -649,6 +742,7 @@ static int do_save(int k)
         /* Round-trip test: we are the same system, unpacked over itself. */
         int fresh = -1;
         if (g_cfg.test == 4) fresh = stick_refresh(); else sentinel_close();
+        g_card_busy = 0;
         sq_log("test %d: snapshot unpacked in place, stick fresh=%d", g_cfg.test, fresh);
         set_status(C_OK, g_cfg.test == 3 ? "Test 3 passed: snapshot unpacked in place" :
                          fresh ? "Test 4 passed: unpacked, stick refreshed" : "Test 4: unpacked, stick NOT refreshed");
@@ -658,6 +752,7 @@ static int do_save(int k)
         /* Not a save at all: this is the moment a slot was loaded, seen from
          * inside the snapshot. Nothing may touch the stick before this. */
         int fresh = stick_refresh();
+        g_card_busy = fresh ? 0 : 2;
         staging_free();
         ff_report();
         {
@@ -686,6 +781,7 @@ static int do_save(int k)
     }
 
     sentinel_close();
+    g_card_busy = 0;                            /* the same system as before the sleep: its view of the stick is its own */
     sq_log("save: back from suspend, result %d, hook ran %d times, %d bytes packed", r, engine_hook_hits(), len);
     if (g_flash_det_rc < 0 || g_flash_att_rc < 0)
         sq_log("flash: around the save: detach %08X, attach %08X", g_flash_det_rc, g_flash_att_rc);
@@ -746,6 +842,8 @@ static void do_load(int k, int ask)
     if (h->stream_len > staging_capacity()) { staging_free(); set_status(C_ERR, "Slot is too big for this PSP"); return; }
     if (ask && !confirm(own_page() ? "Load this state? Unsaved progress is lost." : "Switch games? Unsaved progress here is lost.")) { staging_free(); set_status(C_GREY, "Cancelled"); return; }
 
+    g_card_busy = 1;                            /* the other plugins start no write; this system is about to be replaced */
+    if (writers_wait("load")) { g_card_busy = 0; staging_free(); set_status(C_ERR, STILL_WRITING); return; }
     g_prog_label = "Reading slot...";
     int r = slot_read_stream(k, h, staging_ptr(), staging_capacity(), progress);
     if (r == 0) {
@@ -754,6 +852,7 @@ static void do_load(int k, int ask)
         if (sq_stream_validate((const u32 *)staging_ptr(), h->stream_len, reg, n) < 0) r = -3;
     }
     if (r < 0) {
+        g_card_busy = 0;
         staging_free();
         set_status(C_ERR, r == -3 ? "Slot data is damaged. Not loaded." : "Could not read the slot");
         return;
@@ -774,6 +873,7 @@ static void do_load(int k, int ask)
     r = engine_restore(h, freeze_game);
     /* Only reached when the switch did not happen; this game is untouched. */
     power_hold();
+    g_card_busy = 0;
     staging_free();
     sq_log("restore failed: %d", r);
     set_status(C_ERR, r == -6 ? "Stopped safely: slot data changed in RAM" :
@@ -783,13 +883,17 @@ static void do_load(int k, int ask)
 static void do_delete(int k)
 {
     if (!g_view[k].valid) return;
-    if (k == 0) { set_status(C_WARN, "The suspend slot cannot be deleted"); return; }
-    if (!confirm("Delete this state?")) { set_status(C_GREY, "Cancelled"); return; }
+    if (!confirm(k == 0 ? "Delete this suspend?" : "Delete this state?")) { set_status(C_GREY, "Cancelled"); return; }
     slot_delete(k);
     load_views();
     g_pic_dirty = 1;
     set_status(C_OK, "Deleted");
 }
+
+/* Other plugins ask this before they leave the pad hidden for us (Checkpoint's quit
+ * screen does, when it hands over to a suspend or to this menu): an older Sidequest
+ * would never show it again. */
+int sidequestTakesPad(void) { return 1; }
 
 /* While the menu is open the PS button must not bring up the system's
  * "quit game?" screen: the game is frozen and quitting from there hangs.
@@ -806,6 +910,7 @@ static int home_block(int on)
         if (!set) set = (void *)sctrlHENFindFunction("sceImpose_Driver", "sceImpose_driver", 0x5595A71A);
         sq_log("ui: PS button switch %s", get && set ? "found" : "NOT found");
     }
+    pad_hide(on);                               /* every screen opens and closes through here */
     if (!get || !set) return -1;
     if (on) { saved = get(); set(0); }
     else    set(saved);
@@ -858,16 +963,87 @@ static void run_menu(void)
 #define RP_W 464
 #define RP_H 80
 
+/* A launcher can ask for the newest slot to be loaded without the question:
+ * it writes the game's path (the ISO, or the EBOOT.PBP) as the one line of
+ * ms0:/SIDEQUEST/RESUME.REQ just before it starts the game. Shelf does this
+ * when a game is started from its Playing tab ("Resume suspended game").
+ * The file is used once: it is removed when it names this game. One that names
+ * another program is left alone (the launcher itself may be the program running
+ * here, a moment before it starts the game); the launcher clears leftovers.
+ * Returns 1 when it asks for this game. */
+#define SQ_RESUME_REQ SQ_DIR "/RESUME.REQ"
+
+/*
+ * A launcher can also name the slot, or ask for none: ms0:/SIDEQUEST/START.REQ
+ * holds the game's path and, on a second line, the slot number (0 = suspend,
+ * 1..5 = states) or the word "none" (start the game, and do not ask either).
+ * Shelf's "Start from..." writes it. It is a file of its own so that a
+ * Sidequest from before it, which knows only RESUME.REQ, does not take the
+ * path for "load the newest".
+ */
+#define SQ_START_REQ SQ_DIR "/START.REQ"
+
+/* 1 when the request file names this game: it is removed, and its second line
+ * (if any) is copied to `second`. */
+static int request_for_me(const char *file, char *second, int size)
+{
+    char b[sizeof(g_boot) + 24];
+    if (second && size > 0) second[0] = 0;
+    SceUID fd = sceIoOpen(file, PSP_O_RDONLY, 0);
+    if (fd < 0) return 0;
+    int n = sceIoRead(fd, b, sizeof(b) - 1);
+    sceIoClose(fd);
+    if (n <= 0) return 0;
+    b[n] = 0;
+    char *rest = NULL;
+    for (int i = 0; i < n; i++) if (b[i] == '\r' || b[i] == '\n') {
+        b[i] = 0;
+        rest = b + i + 1;
+        while (*rest == '\r' || *rest == '\n') rest++;
+        break;
+    }
+    const char *x = b, *y = g_boot;                     /* same path, whatever the letter case */
+    for (; *x && *y; x++, y++) {
+        char cx = *x, cy = *y;
+        if (cx >= 'a' && cx <= 'z') cx -= 32;
+        if (cy >= 'a' && cy <= 'z') cy -= 32;
+        if (cx != cy) return 0;
+    }
+    if (*x || *y) return 0;
+    if (second && rest) {
+        int i = 0;
+        for (; rest[i] && rest[i] != '\r' && rest[i] != '\n' && i < size - 1; i++) second[i] = rest[i];
+        second[i] = 0;
+    }
+    sceIoRemove(file);
+    return 1;
+}
+
 static void resume_prompt(void)
 {
-    char line[64];
-    if (!g_cfg.resume_prompt || !g_cfg.enable_load || !g_can_save || !g_boot[0]) return;
+    char line[64], pick[8];
+    int want = -1;                                      /* a slot named by the launcher */
+    int asked = g_boot[0] ? request_for_me(SQ_RESUME_REQ, NULL, 0) : 0;     /* honoured even when the prompt is off */
+    if (g_boot[0] && request_for_me(SQ_START_REQ, pick, sizeof(pick))) {
+        if (pick[0] >= '0' && pick[0] <= '5' && !pick[1]) { want = pick[0] - '0'; asked = 1; }
+        else {                                          /* "none", or anything else: a plain start, and no question */
+            sq_log("resume: the launcher asked for a start without loading");
+            return;
+        }
+    }
+    if ((!g_cfg.resume_prompt && !asked) || !g_cfg.enable_load || !g_can_save || !g_boot[0]) return;
     load_games();
     show_page(0);
     int k = newest_slot();                      /* the most recent of this game's suspend and states */
+    if (want >= 0) {
+        if (g_view[want].valid) k = want;
+        else { sq_log("resume: the launcher asked for slot %d, which is empty: asking instead", want); asked = 0; }
+    }
     if (k < 0) return;
+    if (!asked && !g_cfg.resume_prompt) return;
     const char *when = g_view[k].h.saved_at;
-    sq_log("resume: offering slot %d", k);
+    if (want >= 0 && asked) sq_log("resume: slot %d named by the launcher, loading without the question", k);
+    else sq_log(asked ? "resume: slot %d asked for by the launcher, loading without the question" : "resume: offering slot %d", k);
 
     /* The game is frozen while the question is on screen: nothing paints
      * over it, and it stays until one of the two buttons is pressed. */
@@ -877,6 +1053,7 @@ again:
     power_hold();
     wait_release();
     g_pic_dirty = 1;
+    if (asked) goto load;                       /* the launcher already said yes */
     if (blit_setup() >= 0) {
         blit_rect(RP_X, RP_Y, RP_W, RP_H, C_BG);
         blit_rect(RP_X, RP_Y, RP_W, 2, C_HI);
@@ -909,6 +1086,7 @@ again:
             return;
         }
     }
+load:
     wait_release();
     set_status(C_GREY, "");
     do_load(k, 0);
@@ -976,6 +1154,7 @@ static void suspend_and_quit(void)
     }
     draw_message("Suspended", "Quitting the game...", C_OK);
     sceKernelDelayThread(800 * 1000);
+    pad_hide(0);                                        /* the state is taken; nothing may leave the pad hidden for what runs next */
     thaw_game();                                        /* the game must run to act on the request */
     power_release();
     g_slide = 0;

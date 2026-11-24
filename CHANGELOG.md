@@ -2,6 +2,39 @@
 
 Each plugin has its own version number. A plugin's number goes up only when its own files change, so an entry lists only the plugins you need to replace.
 
+## Sidequest 1.2
+
+Replace `sidequest.prx`. The settings file is unchanged; states saved with 1.1 still load.
+
+- **Resume request from a launcher.** A launcher can ask for a game's newest slot to be loaded without the "Continue where you left off?" question, by writing the game's path into `ms0:/SIDEQUEST/RESUME.REQ` just before it starts the game. The [Shelf launcher](https://github.com/00KAM1/psp-shelf-launcher) does this for games started from its Home tab. Started any other way, Sidequest asks as before.
+- **A launcher can name the slot, or ask for none.** `ms0:/SIDEQUEST/START.REQ` holds the game's path and, on a second line, a slot number (0 for the suspend, 1 to 5 for states) or `none`. Shelf's "Start from..." writes it.
+- **The game no longer sees the buttons you press on Sidequest's screens.** Before, a press could reach the game when it ran again for a moment before a save, and open a menu that ended up in the state. The pad is hidden from the game while a screen is open and through a save or load, and shown again once every button has been let go.
+- **Sidequest and the other plugins take turns at the Memory Stick.** The others start no write while a state is being taken or loaded, and Sidequest waits for one that is in the middle of a write. If one is still writing after ten seconds, no state is taken and the menu says "A plugin is still writing: try again shortly".
+- **The suspend slot can be deleted** with △, like a state.
+
+## Checkpoint 1.1
+
+Replace `checkpoint.prx`. Settings and your kept saves are unchanged.
+
+- **The game no longer sees the buttons you press on Checkpoint's screens.** The same change as in Sidequest 1.2. With "Suspend and quit" and "L Sidequest" the pad stays hidden until Sidequest is done (needs Sidequest 1.2).
+- **Takes turns with Sidequest at the Memory Stick.** Save copies and journey entries wait while a state is being taken or loaded and are done afterwards.
+
+## Emblem 1.1
+
+Replace `emblem.prx`. Game files and your earned achievements are unchanged.
+
+- **Takes turns with Sidequest at the Memory Stick.** An unlock earned while a state is being taken or loaded is written as soon as that is over.
+
+## Scanline 1.1
+
+Replace `scanline.prx`. Settings are unchanged.
+
+- **Takes turns with Sidequest at the Memory Stick.** A settings change made while a state is being taken or loaded is written as soon as that is over.
+
+## Runtime 1.0
+
+Initial release. A companion to the [Shelf launcher](https://github.com/00KAM1/psp-shelf-launcher): it shows nothing on its own.
+
 ## Sidequest 1.1
 
 Replace `sidequest.prx` and `SIDEQUEST/config.txt`. Checkpoint, Scanline and Emblem are unchanged and stay at 1.0.

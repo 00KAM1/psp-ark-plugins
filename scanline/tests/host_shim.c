@@ -16,3 +16,22 @@ int sceIoClose(SceUID fd){ return close(fd); }
 int sceIoRemove(const char *p){ char q[512]; map(p,q); return unlink(q); }
 int sceIoRename(const char *a, const char *b){ char x[512],y[512]; map(a,x); map(b,y); return rename(x,y); }
 int sceIoMkdir(const char *p, int m){ char q[512]; map(p,q); return mkdir(q,0755); }
+
+/* ---- Sidequest's "is the stick yours?" answer, set by the tests ----------- */
+int host_sidequest = -1;                        /* -1: no Sidequest loaded; else what sidequestCardBusy() returns */
+int host_busy_for = 0;                          /* > 0: that many more delays, then Sidequest is done */
+int host_delays = 0;
+static int host_busy(void) { return host_sidequest; }
+unsigned long sctrlHENFindFunction(const char *mod, const char *lib, unsigned int nid)
+{
+    if (host_sidequest < 0 || strcmp(mod, "Sidequest") || strcmp(lib, "SidequestLib") || nid != 0x5C4B5001) return 0;
+    return (unsigned long)host_busy;
+}
+int sceKernelCpuSuspendIntr(void) { return 0; }
+void sceKernelCpuResumeIntr(int flags) { (void)flags; }
+int sceKernelDelayThread(unsigned int us)
+{
+    (void)us; host_delays++;
+    if (host_busy_for > 0 && --host_busy_for == 0) host_sidequest = 0;
+    return 0;
+}

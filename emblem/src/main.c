@@ -104,7 +104,11 @@ static void unlock(int id)
     g_have.has[id] = 1;
     now_stamp(stamp);
     ac_snprintf(g_have.date[id], sizeof(g_have.date[id]), "%.4s-%.2s-%.2s %.2s:%.2s", stamp, stamp + 4, stamp + 6, stamp + 9, stamp + 11);
-    int r = ac_append(g_earned_path, g_game, g_em.title[0] ? g_em.title : g_game, id, stamp, a->title, a->points);
+    int r = -9;                                 /* -9: Sidequest was at the stick, not written */
+    if (ac_card_wait() == 0) {
+        r = ac_append(g_earned_path, g_game, g_em.title[0] ? g_em.title : g_game, id, stamp, a->title, a->points);
+        ac_card_end();
+    }
     ac_log("%s %d '%s' (%d pts) at %s, written %d", g_quiet ? "ALREADY EARNED" : "UNLOCKED", id, a->title, a->points, stamp, r);
     if (g_quiet) { g_quiet_n++; return; }
     ac_snprintf(foot, sizeof(foot), "%d pts   %d of %d", a->points, earned_count(), g_em.total);
@@ -208,7 +212,8 @@ static void move_old_progress(void)
     if (sceIoGetstat(g_earned_path, &st) >= 0) return;
     ac_snprintf(old, sizeof(old), AC_OLD_DIR "/%s/unlocked.txt", g_game);
     if (sceIoGetstat(old, &st) < 0) return;
-    int r = ac_copy_file(old, g_earned_path);
+    int r = -9;
+    if (ac_card_wait() == 0) { r = ac_copy_file(old, g_earned_path); ac_card_end(); }
     ac_log("progress from %s copied to earned/%s.txt: %d", old, g_game, r);
 }
 
@@ -222,7 +227,7 @@ static int main_thread(SceSize args, void *argp)
         hook_remove();
         return 0;
     }
-    sceIoMkdir(AC_DIR "/earned", 0777);
+    if (ac_card_wait() == 0) { sceIoMkdir(AC_DIR "/earned", 0777); ac_card_end(); }
     ac_snprintf(g_earned_path, sizeof(g_earned_path), AC_DIR "/earned/%s.txt", g_game);
     move_old_progress();
     int kept = ac_load(g_earned_path, &g_have);
@@ -273,11 +278,14 @@ static int main_thread(SceSize args, void *argp)
 int module_start(SceSize args, void *argp)
 {
     SceIoStat st;
-    sceIoMkdir(AC_DIR, 0777);
-    sceIoMkdir(AC_DIR "/games", 0777);
-    if (sceIoGetstat(AC_LOG_PATH, &st) >= 0 && st.st_size > 16 * 1024) {
-        sceIoRemove(AC_DIR "/emblem.old");
-        if (sceIoRename(AC_LOG_PATH, AC_DIR "/emblem.old") < 0) sceIoRemove(AC_LOG_PATH);
+    if (ac_card_begin() == 0) {
+        sceIoMkdir(AC_DIR, 0777);
+        sceIoMkdir(AC_DIR "/games", 0777);
+        if (sceIoGetstat(AC_LOG_PATH, &st) >= 0 && st.st_size > 16 * 1024) {
+            sceIoRemove(AC_DIR "/emblem.old");
+            if (sceIoRename(AC_LOG_PATH, AC_DIR "/emblem.old") < 0) sceIoRemove(AC_LOG_PATH);
+        }
+        ac_card_end();
     }
     /* PSP games only: not the XMB, not PS1 games, not ARK's launcher. */
     if (sceKernelInitKeyConfig() != PSP_INIT_KEYCONFIG_GAME) return 1;

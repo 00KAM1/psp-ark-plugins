@@ -1,10 +1,11 @@
 # Sidequest + Checkpoint: known issues and test status
 
-Everything here refers to the one console these plugins have run on: a **PSP-3000 with ARK-5**, games as ISO files on the Memory Stick, launched from ARK's custom launcher. Builds in this release: Sidequest 1.1 `built Nov 23 2026 06:52:22`, Checkpoint 1.0 `built Nov 22 2026 02:55:44`.
+Everything here refers to the one console these plugins have run on: a **PSP-3000 with ARK-5**, games as ISO files on the Memory Stick, launched from ARK's custom launcher. Builds in this release: Sidequest 1.2 `built Nov 24 2026 10:28:48`, Checkpoint 1.1 `built Nov 24 2026 10:16:53`. Both have run on the PSP.
 
 **About these builds.**
-- **Sidequest 1.1** adds the flash re-scan after a load, the battery guard and the 50% brightness to Sidequest 1.0. The re-scan was confirmed on the PSP with a test build of Nov 23 2026 06:13:44 that carries the same fix code, and Sidequest 1.1 has since run on the PSP as well.
-- **Checkpoint 1.0** is the code confirmed below with the version number set to 1.0 and one addition: the quit screen's L and R buttons, which open Sidequest's menu and Emblem's viewer. Checkpoint 1.0, with that addition, has run on the PSP.
+- **Sidequest 1.2** adds to 1.1: the resume and "Start from..." requests from a launcher, the pad hidden from the game on its screens, taking turns with the other plugins at the Memory Stick, and deleting the suspend slot. All of these were seen working on the PSP with this build or the one just before it.
+- **Sidequest 1.1** added the flash re-scan after a load, the battery guard and the 50% brightness to Sidequest 1.0, and ran on the PSP.
+- **Checkpoint 1.1** adds to 1.0: the pad hidden from the game on its screens, and taking turns with Sidequest at the Memory Stick. Suspend and quit from the quit screen was checked on the PSP with it: the game no longer opens a menu of its own on the way out.
 - The detailed results under "Confirmed on the PSP-3000" were first obtained with the builds made before 1.0. The points listed under "Not yet confirmed" have not been checked one by one.
 
 ## Disclosure
@@ -28,6 +29,7 @@ The snapshot is packed into about 27MB of spare memory before being written. A g
 
 **3. A slot brings back the copy of Sidequest it was saved with.**
 A slot holds the whole system, plugins included. After a load, the Sidequest that is running is the one from the moment of the save, until the game is restarted. States from before 1.1 are refused outright (see issue 1), so this now only matters between later builds.
+The same goes for the rest of the system, including ARK's launcher. A state saved before the launcher was changed (for example to the [Shelf launcher](https://github.com/00KAM1/psp-shelf-launcher)) can end in a black screen instead of the launcher. This was seen on the PSP with states saved before Shelf was installed. After loading such a state, files on the Memory Stick were also found damaged (the Shelf launcher's saved game list and logs). Delete every slot before installing or updating Sidequest, another plugin, a launcher or ARK, and take new states afterwards; the [manual](sidequest.md#things-to-know) says how.
 
 **4. Every save and load blanks the screen for several seconds.**
 The PSP really goes to sleep and wakes again; this is how the snapshot is taken. An instant method exists in the firmware but on this console it broke quitting games and loading slots, so it is not used.
@@ -101,7 +103,10 @@ At 5% or less without the charger, saves and loads are refused with "Battery too
 | Suspend and quit | Hand-over from Checkpoint to Sidequest, slot written, game closed |
 | POWER slide on a menu | The menu closes and the PSP sleeps instead of hanging |
 | Quit screen: L and R | L opens Sidequest's menu and R opens Emblem's viewer |
-| Sidequest 1.1 and Checkpoint 1.0 | The release builds run on the PSP |
+| Sidequest 1.2 and Checkpoint 1.1 | The release builds run on the PSP |
+| Buttons pressed on a Sidequest or Checkpoint screen | The game does not see them: no game menu opens before a save or on Suspend and quit (checked in Lunar: Silver Star Harmony and others), and the pad works again afterwards |
+| A slot chosen in the Shelf launcher's "Start from..." | That slot loads; "Start without loading" starts the game with no question |
+| Deleting the suspend slot | △ on the suspend row deletes it |
 
 **Sidequest's flash re-scan, confirmed on the PSP-3000**
 

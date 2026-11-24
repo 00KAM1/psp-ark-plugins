@@ -8,4 +8,11 @@ PSP_EXPORT_VAR_HASH(module_info)
 PSP_EXPORT_FUNC_NID(module_reboot_before, 0x2F064FA6)
 PSP_EXPORT_END
 
+# For other plugins: is the Memory Stick to be left alone just now? (see ui.c)
+PSP_EXPORT_START(SidequestLib, 0, 0x0001)
+PSP_EXPORT_FUNC_NID(sidequestCardBusy, 0x5C4B5001)
+# Does this Sidequest show the pad to the game again when a screen that hid it hands over to us?
+PSP_EXPORT_FUNC_NID(sidequestTakesPad, 0x5C4B5006)
+PSP_EXPORT_END
+
 PSP_END_EXPORTS

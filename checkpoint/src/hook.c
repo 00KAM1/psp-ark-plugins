@@ -160,9 +160,12 @@ u32 free_kb(void)
 int hook_backup_now(const char *save)
 {
     char stamp[BT_STAMP_LEN + 1];
+    if (bt_card_begin() < 0) return BT_E_COPY;
     now_stamp(stamp);
     /* one more than usual may stay: the caller may be about to restore the oldest */
-    return vault_backup(save, stamp, g_cfg.keep + 1, 0, 1, free_kb());
+    int r = vault_backup(save, stamp, g_cfg.keep + 1, 0, 1, free_kb());
+    bt_card_end();
+    return r;
 }
 
 /* ---- journey log ---------------------------------------------------------- */
@@ -182,7 +185,9 @@ void hook_play_tick(void)
 u32 hook_play_flush(void)
 {
     if (!g_cfg.journey || !g_game[0]) return 0;
+    if (bt_card_begin() < 0) return journey_time_add(g_game, 0);    /* only read; the seconds stay counted for the next time */
     u32 total = journey_time_add(g_game, g_play_secs);
+    bt_card_end();
     g_play_secs = 0;
     return total;
 }
@@ -208,8 +213,9 @@ static int run_queue(void)
 {
     char stamp[BT_STAMP_LEN + 1];
     int done = 0;
+    if (bt_card_begin() < 0) return 0;          /* Sidequest is at the stick: the queue stays, hook_poll comes back */
     g_copying = 1;                              /* from here a new save waits for us in hook_init */
-    if (g_in_dialog) { g_copying = 0; return 0; }   /* one started in that instant: let it finish first */
+    if (g_in_dialog) { g_copying = 0; bt_card_end(); return 0; }   /* one started in that instant: let it finish first */
     for (int i = 0; i < g_nseen; i++) {
         if (!g_pend[i]) continue;
         g_pend[i] = 0;
@@ -223,6 +229,7 @@ static int run_queue(void)
         done++;
     }
     g_copying = 0;
+    bt_card_end();
     return done;
 }
 

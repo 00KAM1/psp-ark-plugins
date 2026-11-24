@@ -1,4 +1,4 @@
-# Scanline 1.0 manual
+# Scanline 1.1 manual
 
 **CRT-style scanlines over PSP games.** As each frame is shown, Scanline darkens every 2nd, 3rd or 4th row of it. The game itself is not changed and does not know.
 
@@ -139,7 +139,7 @@ ms0:/SCANLINE/scanline.log    what the plugin found and how long it takes
 
 ## The log
 
-`scanline.log` starts each run with `Scanline 1.0 (built <date> <time>) start`. After that:
+`scanline.log` starts each run with `Scanline 1.1 (built <date> <time>) start`. After that:
 
 - `hook: ...` how the plugin attached itself to the display.
 - `game '...'` the name it gave the game and whether the game had settings of its own.

@@ -1,6 +1,6 @@
-# Emblem: known issues and test status (v1.0)
+# Emblem: known issues and test status (v1.1)
 
-Everything here refers to the one console this plugin was made for: a **PSP-3000 with ARK-5**, games as ISO files on the Memory Stick, with Scanline and MissyHUD installed alongside. Build in this release: `built Nov 22 2026 03:34:23`.
+Everything here refers to the one console this plugin was made for: a **PSP-3000 with ARK-5**, games as ISO files on the Memory Stick, with Scanline and MissyHUD installed alongside. Build in this release: Emblem 1.1, `built Nov 24 2026 10:16:57`. It has run on the PSP.
 
 ## Disclosure
 

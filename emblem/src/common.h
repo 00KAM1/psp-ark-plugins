@@ -2,7 +2,7 @@
 #define AC_COMMON_H
 #include <psptypes.h>
 
-#define AC_VERSION_STR  "1.0"                   /* the user sets the version */
+#define AC_VERSION_STR  "1.1"                   /* the user sets the version */
 #define AC_BUILD_STAMP  __DATE__ " " __TIME__
 #define AC_DIR          "ms0:/EMBLEM"
 #define AC_LOG_PATH     AC_DIR "/emblem.log"
@@ -11,6 +11,10 @@
 /* util.c */
 int  ac_snprintf(char *buf, int size, const char *fmt, ...);
 void ac_log(const char *fmt, ...);
+int  ac_card_busy(void);                     /* Sidequest: 0 write, 1 wait, 2 do not write */
+int  ac_card_begin(void);                    /* before a write: 0 = go ahead, then ac_card_end() */
+void ac_card_end(void);
+int  ac_card_wait(void);                     /* the same, waiting while a state is taken or loaded */
 
 /* hook.c: what the display hook draws, set by the control thread */
 typedef struct {

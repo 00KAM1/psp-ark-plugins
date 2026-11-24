@@ -1,4 +1,4 @@
-# Sidequest 1.1 manual
+# Sidequest 1.2 manual
 
 **Save states for PSP games.** Sidequest freezes the whole system exactly as it is (the game, its memory, the screen) into a slot on the Memory Stick, and can put that moment back later. Every game gets its own six slots.
 
@@ -37,7 +37,7 @@ The game also sees that SELECT press. If that is a problem in a particular game,
 | UP / DOWN | Pick a slot |
 | X | Save the game into the selected state |
 | □ | Load the selected slot |
-| △ | Delete the selected state |
+| △ | Delete the selected slot (a state or the suspend) |
 | L / R | Look at another game's slots |
 | O | Close the menu |
 
@@ -102,6 +102,10 @@ The suspend slot is overwritten each time. It is not removed when you continue f
 When you start a game that has any slot, the game pauses a few seconds in and asks **"Continue where you left off?"**, showing the picture of the most recent slot, whether that is the suspend slot or a state.
 
 ![The continue prompt, with the slot being read](images/sidequest-continue-prompt.jpg)
+
+**From a launcher.** A launcher can skip the question. If `ms0:/SIDEQUEST/RESUME.REQ` holds the path of the game being started (the ISO, or the `EBOOT.PBP`) on one line, Sidequest loads the newest slot without asking and removes the file. This works even with `resume_prompt = 0`. The [Shelf launcher](https://github.com/00KAM1/psp-shelf-launcher) writes the file for games started from its Home tab. The game still starts first, and the state loads a few seconds in.
+
+A launcher can also name the slot, or ask for none. `ms0:/SIDEQUEST/START.REQ` holds the game's path on the first line and, on the second, a slot number (0 for the suspend, 1 to 5 for the states) or the word `none`, which starts the game without loading and without the question. An empty slot gets the question instead. Shelf's "Start from..." writes this file.
 
 - **X** goes straight back to that moment (a normal load: dark screen for a few seconds).
 - **O** starts the game normally.
@@ -190,7 +194,7 @@ ms0:/SIDEQUEST/<game>/STATE5.SQS    + STATE5.THM
 | That game's file was moved or deleted | The ISO or EBOOT the slot belongs to is no longer at the same path. |
 | Start that game to save it | You pressed X on another game's page. |
 | Suspend is written by Suspend and Quit only | You pressed X on the suspend row. |
-| The suspend slot cannot be deleted | You pressed △ on the suspend row. |
+| A plugin is still writing: try again shortly | Another plugin (Checkpoint, Emblem, Scanline or Runtime) was in the middle of a write for ten seconds. Nothing was saved or loaded. Close the menu and try again. |
 | Slot data is damaged. Not loaded. | The file failed its checks. The running game is untouched. |
 | The PSP did not suspend (game busy?) | The game would not let the PSP sleep. Try again at a calmer moment (not during a load or a save). |
 | Memory Stick was not refreshed! | After a load Sidequest could not confirm the Memory Stick was re-read. Saving in the game now could damage files; quit and restart the game to be safe. |
@@ -202,7 +206,8 @@ ms0:/SIDEQUEST/<game>/STATE5.SQS    + STATE5.THM
 ## Things to know
 
 - **A load can undo progress.** If you load an old state and then save in the game, the game save now holds the old progress.
-- **A slot only loads on the same PSP, firmware and ARK version** it was made on, and Sidequest 1.1 only saves on firmware 6.61.
+- **A slot only loads on the same PSP, firmware and ARK version** it was made on, and Sidequest only saves on firmware 6.61.
+- **Delete every slot before you install or update Sidequest, another plugin, a launcher such as the [Shelf launcher](https://github.com/00KAM1/psp-shelf-launcher), or ARK.** A slot holds the whole system: the launcher and every plugin, in the versions installed when it was saved. Loading a slot from before an install or update, from this menu or by resuming a game from a launcher, can end in a black screen when you quit (hold POWER up for ten seconds to switch off), can run the old plugin versions or run without a plugin added since until the game is restarted, and can leave files on the Memory Stick damaged. On my PSP, the Shelf launcher's saved game list and logs were damaged after loading such a slot. Save in the game's own save menu first; delete every slot with △ in the menu (the suspend too; L / R shows your other games), or the game folders inside `ms0:/SIDEQUEST/` with a computer (keep `config.txt`); install; then take new states.
 - **Don't move or rename a game's ISO** while it has slots. The slots are tied to its path.
 - **Don't save a state during online or ad hoc play.**
 - **States saved before 1.1 cannot be loaded.** They show as empty. Save into the slot again.

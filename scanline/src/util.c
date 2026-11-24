@@ -6,6 +6,7 @@
 #include <pspiofilemgr.h>
 #include <stdarg.h>
 #include <string.h>
+#include <systemctrl.h>
 #include "common.h"
 
 static void put(char *buf, int size, int *pos, char c)
@@ -65,17 +66,83 @@ int sl_snprintf(char *buf, int size, const char *fmt, ...)
     return r;
 }
 
+/* ------------------------------------------------------------------------ */
+/* The Memory Stick and Sidequest.                                          */
+/* A state holds the system's whole memory, the file system's included. A   */
+/* write that is half done when the state is taken would be finished, after */
+/* a load, on a stick that has changed since. So the two sides shake hands: */
+/*   - we say when we are writing (scanlineCardWriting, which Sidequest asks  */
+/*     before it sleeps: it waits for us, or takes no state);               */
+/*   - Sidequest says when it is at the stick (sidequestCardBusy: 1 while   */
+/*     it takes or loads a state, 2 after a load that could not refresh the */
+/*     stick), and then we do not start a write.                            */
+/* We raise our mark first and ask second; Sidequest raises its own first   */
+/* and asks second, so one of the two always sees the other.                */
+/* Without Sidequest, or with one older than this, everything is as before. */
+/* ------------------------------------------------------------------------ */
+static volatile int g_card_writing;
+static volatile int g_card_held;                /* writes put off, for one line in the log afterwards */
+
+int scanlineCardWriting(void) { return g_card_writing; }
+
+static void card_mark(int d, int held)
+{
+    int k = sceKernelCpuSuspendIntr();
+    g_card_writing += d;
+    g_card_held += held;
+    sceKernelCpuResumeIntr(k);
+}
+
+/* Looked up every time: Sidequest may load after us, or not at all. */
+int sl_card_busy(void)
+{
+    int (*busy)(void) = (void *)sctrlHENFindFunction("Sidequest", "SidequestLib", 0x5C4B5001);
+    return busy ? busy() : 0;
+}
+
+static int card_begin(int count)
+{
+    card_mark(1, 0);
+    int b = sl_card_busy();
+    if (!b) return 0;
+    card_mark(-1, count);
+    return b == 2 ? -2 : -1;
+}
+
+/* Before any write: 0 = go ahead, and call sl_card_end() when done. Below 0 =
+ * Sidequest is at the stick: do not write now (-2: not again in this program). */
+int  sl_card_begin(void) { return card_begin(1); }
+void sl_card_end(void)   { card_mark(-1, 0); }
+
+/* For a write that must not be lost: waits while a state is taken or loaded. */
+int sl_card_wait(void)
+{
+    for (int i = 0; i < 150; i++) {             /* 15 s of time awake; a save or a load is over long before */
+        int r = card_begin(i == 0);
+        if (r == 0 || r == -2) return r;
+        sceKernelDelayThread(100 * 1000);
+    }
+    return -1;
+}
+
 /* Appends one line to ms0:/SCANLINE/scanline.log. Never called from the hook. */
 void sl_log(const char *fmt, ...)
 {
-    char line[200];
+    char line[296];
+    if (card_begin(0) < 0) return;              /* a log line is not worth a write at the wrong moment */
     va_list ap; va_start(ap, fmt);
-    int n = sl_vsnprintf(line, (int)sizeof(line) - 2, fmt, ap);
+    int n = sl_vsnprintf(line, 198, fmt, ap);
     va_end(ap);
-    if (n > (int)sizeof(line) - 3) n = (int)sizeof(line) - 3;
+    if (n > 197) n = 197;
     line[n++] = '\r'; line[n++] = '\n'; line[n] = 0;
+    if (g_card_held) {                          /* said once, when the stick is ours again */
+        int h = g_card_held;
+        card_mark(0, -h);
+        n += sl_snprintf(line + n, (int)sizeof(line) - n, "card guard: %d write(s) put off while Sidequest was at the stick\r\n", h);
+    }
     SceUID fd = sceIoOpen(SL_LOG_PATH, PSP_O_WRONLY | PSP_O_CREAT | PSP_O_APPEND, 0777);
     if (fd >= 0) { sceIoWrite(fd, line, n); sceIoClose(fd); }
+    sl_card_end();
 }
 
 /* ---- config: "key = value" lines, '#' comments ---------------------------- */
@@ -202,14 +269,17 @@ int config_save(const SlConfig *c)
         c->enabled, c->strength, c->spacing, c->mode, c->hotkeys, c->fast, c->ge_wait, c->defer);
     if (n >= (int)sizeof(buf)) return -1;
 
+    if (sl_card_wait() < 0) return -5;          /* Sidequest is at the stick */
     sceIoMkdir(SL_DIR, 0777);
     SceUID fd = sceIoOpen(SL_DIR "/config.tmp", PSP_O_WRONLY | PSP_O_CREAT | PSP_O_TRUNC, 0777);
-    if (fd < 0) return -2;
+    if (fd < 0) { sl_card_end(); return -2; }
     int ok = sceIoWrite(fd, buf, n) == n;
     if (sceIoClose(fd) < 0) ok = 0;
-    if (!ok) { sceIoRemove(SL_DIR "/config.tmp"); return -3; }
+    if (!ok) { sceIoRemove(SL_DIR "/config.tmp"); sl_card_end(); return -3; }
     sceIoRemove(SL_CONFIG_PATH);
-    return sceIoRename(SL_DIR "/config.tmp", SL_CONFIG_PATH) < 0 ? -4 : 0;
+    int rr = sceIoRename(SL_DIR "/config.tmp", SL_CONFIG_PATH) < 0 ? -4 : 0;
+    sl_card_end();
+    return rr;
 }
 
 /* ---- per-game settings: ms0:/SCANLINE/games.txt --------------------------------
@@ -332,12 +402,15 @@ int games_set(const char *key, const SlConfig *c)
     if (n && g_games_out[n - 1] != '\n') { g_games_out[n++] = '\r'; g_games_out[n++] = '\n'; }
     memcpy(g_games_out + n, mine, (size_t)mlen); n += mlen;
 
+    if (sl_card_wait() < 0) return -5;          /* Sidequest is at the stick */
     sceIoMkdir(SL_DIR, 0777);
     SceUID fd = sceIoOpen(SL_DIR "/games.tmp", PSP_O_WRONLY | PSP_O_CREAT | PSP_O_TRUNC, 0777);
-    if (fd < 0) return -2;
+    if (fd < 0) { sl_card_end(); return -2; }
     int ok = sceIoWrite(fd, g_games_out, n) == n;
     if (sceIoClose(fd) < 0) ok = 0;
-    if (!ok) { sceIoRemove(SL_DIR "/games.tmp"); return -3; }
+    if (!ok) { sceIoRemove(SL_DIR "/games.tmp"); sl_card_end(); return -3; }
     sceIoRemove(SL_GAMES_PATH);
-    return sceIoRename(SL_DIR "/games.tmp", SL_GAMES_PATH) < 0 ? -4 : 0;
+    int rr = sceIoRename(SL_DIR "/games.tmp", SL_GAMES_PATH) < 0 ? -4 : 0;
+    sl_card_end();
+    return rr;
 }
