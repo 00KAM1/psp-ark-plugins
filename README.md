@@ -6,6 +6,8 @@ Emblem, Sidequest, Checkpoint and Scanline each work on their own. They are inde
 
 **Shelf** is a home screen and game launcher that brings these plugins together: it shows each game's save states, journey and achievements in one place. It has its own repository, [psp-shelf-launcher](https://github.com/00KAM1/psp-shelf-launcher). The plugins do not need Shelf, and Shelf runs without them.
 
+**Shelf Tools** is a web page that goes with them: **Recap** shows your play for a year, a month or all time from what the plugins have kept on the Memory Stick, and the **Emblem Workshop** writes and checks Emblem's game files. It runs in your browser and has its own repository, [psp-shelf-tools](https://github.com/00KAM1/psp-shelf-tools). Open it at [00kam1.github.io/psp-shelf-tools](https://00kam1.github.io/psp-shelf-tools/).
+
 | Plugin | Version | What it does | Opens with |
 |---|---|---|---|
 | [**Emblem**](#emblem) | 1.2 | Achievements, earned and kept on the Memory Stick. One text file per game. | Hold **L + R + LEFT**, ½ s |
@@ -28,6 +30,7 @@ Achievements for PSP games, kept on the Memory Stick. Emblem watches a game's me
 </p>
 
 - **One text file per game.** The plugin knows no games itself; a game without a file is left alone.
+- **Write your own game file** in the [Emblem Workshop](https://00kam1.github.io/psp-shelf-tools/), a web page that checks the file with the plugin's own rule engine.
 - **41 games, 1,731 achievements in this release**, every file written or checked by hand with AI assistance. Most files cover part of a game's set, and only Ys: The Oath in Felghana and Trails in the Sky have been played on a PSP so far; see the [manual](docs/emblem.md#games) for the list.
 - Hold L + R + LEFT for half a second to see every achievement of the game, earned or locked.
 - Loading a save that is already far in catches up at once.
@@ -238,4 +241,4 @@ These plugins exist because other people shared their work first.
 | **RetroAchievements** ([retroachievements.org](https://retroachievements.org)) | The achievement titles and points, and the public memory notes that Emblem's game files were written from. Emblem is not connected to RetroAchievements. |
 | **Fusion Pixel Font** and the **Misaki** font by Num Kadoma | The Japanese glyphs in Checkpoint. |
 
-The launcher that goes with these plugins is [psp-shelf-launcher](https://github.com/00KAM1/psp-shelf-launcher).
+The launcher that goes with these plugins is [psp-shelf-launcher](https://github.com/00KAM1/psp-shelf-launcher), and the web tools are in [psp-shelf-tools](https://github.com/00KAM1/psp-shelf-tools).
