@@ -2,6 +2,8 @@
 
 Kernel plugins for the PSP on ARK-5 custom firmware: **Emblem**, **Sidequest**, **Checkpoint**, **Scanline** and **Runtime**.
 
+**On a PS Vita, use [psvita-ark-plugins](https://github.com/00KAM1/psvita-ark-plugins).** Those are the same plugins built for ARK-5 inside [Adrenaline 8](https://github.com/isage/Adrenaline), changed where the Vita needed it. The builds here are for a real PSP and are not meant for a Vita. The Vita's launcher is [psvita-shelf-launcher](https://github.com/00KAM1/psvita-shelf-launcher).
+
 Emblem, Sidequest, Checkpoint and Scanline each work on their own. They are independent of each other, so you can install any of them, and they are made to run side by side. **Runtime is the exception:** it is built for the [Shelf launcher](https://github.com/00KAM1/psp-shelf-launcher) and shows nothing without it.
 
 **Shelf** is a home screen and game launcher that brings these plugins together: it shows each game's save states, journey and achievements in one place. It has its own repository, [psp-shelf-launcher](https://github.com/00KAM1/psp-shelf-launcher). The plugins do not need Shelf, and Shelf runs without them.
@@ -241,4 +243,4 @@ These plugins exist because other people shared their work first.
 | **RetroAchievements** ([retroachievements.org](https://retroachievements.org)) | The achievement titles and points, and the public memory notes that Emblem's game files were written from. Emblem is not connected to RetroAchievements. |
 | **Fusion Pixel Font** and the **Misaki** font by Num Kadoma | The Japanese glyphs in Checkpoint. |
 
-The launcher that goes with these plugins is [psp-shelf-launcher](https://github.com/00KAM1/psp-shelf-launcher), and the web tools are in [psp-shelf-tools](https://github.com/00KAM1/psp-shelf-tools).
+The launcher that goes with these plugins is [psp-shelf-launcher](https://github.com/00KAM1/psp-shelf-launcher), and the web tools are in [psp-shelf-tools](https://github.com/00KAM1/psp-shelf-tools). The PS Vita builds are in [psvita-ark-plugins](https://github.com/00KAM1/psvita-ark-plugins) and [psvita-shelf-launcher](https://github.com/00KAM1/psvita-shelf-launcher).
